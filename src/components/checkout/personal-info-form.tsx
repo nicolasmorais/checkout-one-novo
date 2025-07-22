@@ -18,7 +18,6 @@ import {
   CardFooter,
   CardHeader,
 } from "@/components/ui/card";
-import { Globe } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import Image from "next/image";
 
@@ -80,26 +79,7 @@ export default function PersonalInfoForm({ onSubmit }: PersonalInfoFormProps) {
         </CardHeader>
       </Card>
 
-      <div className="my-6 flex items-center justify-center text-sm">
-        <div className="flex items-center">
-          <div className="flex h-6 w-6 items-center justify-center rounded-full border-2 border-primary bg-primary">
-            <div className="h-2 w-2 rounded-full bg-primary-foreground"></div>
-          </div>
-          <p className="ml-2 font-semibold text-primary">Dados pessoais</p>
-        </div>
-        <div className="mx-4 h-px flex-1 bg-border"></div>
-        <div className="flex items-center opacity-50">
-          <div className="flex h-6 w-6 items-center justify-center rounded-full border-2 border-muted-foreground"></div>
-          <p className="ml-2 text-muted-foreground">Pagamento</p>
-        </div>
-        <div className="mx-4 h-px flex-1 bg-border"></div>
-        <div className="flex items-center opacity-50">
-          <div className="flex h-6 w-6 items-center justify-center rounded-full border-2 border-muted-foreground"></div>
-          <p className="ml-2 text-muted-foreground">Acesso ao Produto</p>
-        </div>
-      </div>
-      
-      <Card className="w-full max-w-md shadow-lg">
+      <Card className="w-full max-w-md shadow-lg mt-6">
         <CardHeader>
           <h3 className="font-bold text-lg">Dados Pessoais</h3>
         </CardHeader>
