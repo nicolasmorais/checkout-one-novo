@@ -18,7 +18,6 @@ import {
   CardFooter,
   CardHeader,
 } from "@/components/ui/card";
-import { Switch } from "@/components/ui/switch";
 import Image from "next/image";
 
 const formSchema = z.object({
@@ -106,12 +105,6 @@ export default function PersonalInfoForm({ onSubmit }: PersonalInfoFormProps) {
                   </FormItem>
                 )}
               />
-              <div className="flex items-center justify-between">
-                <label htmlFor="save-data" className="text-sm text-muted-foreground">
-                  Salvar dados para a próxima compra?
-                </label>
-                <Switch id="save-data" />
-              </div>
             </CardContent>
             <CardFooter>
               <Button type="submit" size="lg" className="w-full h-12 text-lg font-bold">
