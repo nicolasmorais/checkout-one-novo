@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -6,6 +7,7 @@ import PersonalInfoForm from "@/components/checkout/personal-info-form";
 import QrCodeDisplay from "@/components/checkout/qr-code-display";
 import SuccessDisplay from "@/components/checkout/success-display";
 import { ShieldCheck } from "lucide-react";
+import Footer from "@/components/checkout/footer";
 
 type UserData = {
   name: string;
@@ -49,24 +51,27 @@ export default function Home() {
   };
 
   return (
-    <main className="flex min-h-screen w-full flex-col items-center bg-background p-4 font-body">
-      <div className="w-full max-w-md">
-        <Image
-          src="https://placehold.co/600x150.png"
-          alt="Banner"
-          width={600}
-          height={150}
-          className="mb-4 w-full rounded-md"
-          data-ai-hint="advertisement banner"
-        />
-        <div className="mb-4 flex items-center justify-center gap-2 rounded-md bg-primary p-3 text-primary-foreground">
-          <ShieldCheck />
-          <span className="font-bold">COMPRA 100% SEGURA</span>
+    <div className="flex flex-col min-h-screen">
+      <main className="flex-grow flex w-full flex-col items-center bg-background p-4 font-body">
+        <div className="w-full max-w-md">
+          <Image
+            src="https://placehold.co/600x150.png"
+            alt="Banner"
+            width={600}
+            height={150}
+            className="mb-4 w-full rounded-md"
+            data-ai-hint="advertisement banner"
+          />
+          <div className="mb-4 flex items-center justify-center gap-2 rounded-md bg-primary p-3 text-primary-foreground">
+            <ShieldCheck />
+            <span className="font-bold">COMPRA 100% SEGURA</span>
+          </div>
         </div>
-      </div>
-      <div key={step} className="w-full max-w-md animate-in fade-in duration-500">
-        {renderStep()}
-      </div>
-    </main>
+        <div key={step} className="w-full max-w-md animate-in fade-in duration-500">
+          {renderStep()}
+        </div>
+      </main>
+      <Footer />
+    </div>
   );
 }
