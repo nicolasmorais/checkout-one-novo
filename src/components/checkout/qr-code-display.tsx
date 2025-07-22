@@ -11,7 +11,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Loader2, Copy, Check } from "lucide-react";
+import { Copy, Check } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -20,29 +20,30 @@ interface QrCodeDisplayProps {
     name: string;
     email: string;
   };
+  paymentData: {
+    qrCode: string;
+    pixCode: string;
+  };
   onScanned: () => void;
 }
 
-export default function QrCodeDisplay({ userData, onScanned }: QrCodeDisplayProps) {
+export default function QrCodeDisplay({ userData, paymentData, onScanned }: QrCodeDisplayProps) {
   const [isCopied, setIsCopied] = useState(false);
   const { toast } = useToast();
 
-  const pixCode = "00020126360014br.gov.bcb.pix0114+551199999999952040000530398654059.905802BR5925Mago do CTR Solucoes Digita6009SAO PAULO62070503***6304E4A5";
-
   useEffect(() => {
-    // This is a placeholder for a real payment check.
-    // In a real application, you would poll your backend to see if the payment has been completed.
+    // This simulates polling a backend to check for payment confirmation.
     const interval = setInterval(() => {
-      // For demonstration, we'll just move to the next step after 10 seconds.
-      // In a real scenario, this would be triggered by a successful payment webhook or API poll.
-      // onScanned();
+      // In a real app, you'd call a backend endpoint here.
+      // For this demo, we'll confirm payment after 10 seconds.
+      onScanned();
     }, 10000); 
 
     return () => clearInterval(interval);
   }, [onScanned]);
 
   const handleCopy = () => {
-    navigator.clipboard.writeText(pixCode);
+    navigator.clipboard.writeText(paymentData.pixCode);
     setIsCopied(true);
     toast({
       description: "Código Pix copiado!",
@@ -61,7 +62,7 @@ export default function QrCodeDisplay({ userData, onScanned }: QrCodeDisplayProp
       <CardContent className="flex flex-col items-center gap-4">
         <div className="p-4 bg-white rounded-lg border">
           <Image
-            src="https://placehold.co/256x256.png"
+            src={paymentData.qrCode}
             alt="QR Code para pagamento"
             width={256}
             height={256}

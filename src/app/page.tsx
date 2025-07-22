@@ -9,10 +9,16 @@ import SuccessDisplay from "@/components/checkout/success-display";
 import { ShieldCheck } from "lucide-react";
 import Footer from "@/components/checkout/footer";
 import { Toaster } from "@/components/ui/toaster";
+import { createPayment, CreatePaymentInput } from "@/ai/flows/create-payment-flow";
 
 type UserData = {
   name: string;
   email: string;
+};
+
+type PaymentData = {
+  qrCode: string;
+  pixCode: string;
 };
 
 type CheckoutStep = "INFO" | "QR" | "SUCCESS";
@@ -20,10 +26,22 @@ type CheckoutStep = "INFO" | "QR" | "SUCCESS";
 export default function Home() {
   const [step, setStep] = useState<CheckoutStep>("INFO");
   const [userData, setUserData] = useState<UserData | null>(null);
+  const [paymentData, setPaymentData] = useState<PaymentData | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleInfoSubmit = (data: UserData) => {
+  const handleInfoSubmit = async (data: CreatePaymentInput) => {
+    setIsLoading(true);
     setUserData(data);
-    setStep("QR");
+    try {
+      const paymentResult = await createPayment(data);
+      setPaymentData(paymentResult);
+      setStep("QR");
+    } catch (error) {
+      console.error("Failed to create payment", error);
+      // Optionally, show a toast notification for the error
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleQrScanned = () => {
@@ -33,10 +51,10 @@ export default function Home() {
   const renderStep = () => {
     switch (step) {
       case "INFO":
-        return <PersonalInfoForm onSubmit={handleInfoSubmit} />;
+        return <PersonalInfoForm onSubmit={handleInfoSubmit} isLoading={isLoading} />;
       case "QR":
-        if (userData) {
-          return <QrCodeDisplay userData={userData} onScanned={handleQrScanned} />;
+        if (userData && paymentData) {
+          return <QrCodeDisplay userData={userData} paymentData={paymentData} onScanned={handleQrScanned} />;
         }
         setStep("INFO");
         return null;
@@ -47,7 +65,7 @@ export default function Home() {
         setStep("INFO");
         return null;
       default:
-        return <PersonalInfoForm onSubmit={handleInfoSubmit} />;
+        return <PersonalInfoForm onSubmit={handleInfoSubmit} isLoading={isLoading} />;
     }
   };
 

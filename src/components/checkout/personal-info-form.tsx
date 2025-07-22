@@ -1,3 +1,4 @@
+
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -20,7 +21,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import Image from "next/image";
-import { ShieldCheck, Star } from "lucide-react";
+import { ShieldCheck, Star, Loader2 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 const formSchema = z.object({
@@ -36,6 +37,7 @@ type UserData = z.infer<typeof formSchema>;
 
 interface PersonalInfoFormProps {
   onSubmit: (data: UserData) => void;
+  isLoading: boolean;
 }
 
 const reviews = [
@@ -59,7 +61,7 @@ const reviews = [
   },
 ];
 
-export default function PersonalInfoForm({ onSubmit }: PersonalInfoFormProps) {
+export default function PersonalInfoForm({ onSubmit, isLoading }: PersonalInfoFormProps) {
   const form = useForm<UserData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -131,8 +133,8 @@ export default function PersonalInfoForm({ onSubmit }: PersonalInfoFormProps) {
               />
             </CardContent>
             <CardFooter className="flex-col items-center">
-              <Button type="submit" size="lg" className="w-full h-12 text-lg font-bold">
-                CONTINUAR &raquo;
+              <Button type="submit" size="lg" className="w-full h-12 text-lg font-bold" disabled={isLoading}>
+                {isLoading ? <Loader2 className="animate-spin" /> : 'CONTINUAR »'}
               </Button>
               <div className="mt-4 flex items-center justify-center gap-2 text-muted-foreground">
                 <ShieldCheck size={16} className="text-green-600"/>
