@@ -107,18 +107,18 @@ export default function PersonalInfoForm({ onSubmit }: PersonalInfoFormProps) {
                 )}
               />
             </CardContent>
-            <CardFooter className="flex-col">
+            <CardFooter className="flex-col items-center">
               <Button type="submit" size="lg" className="w-full h-12 text-lg font-bold">
                 CONTINUAR &raquo;
               </Button>
+              <div className="mt-4 flex items-center justify-center gap-2 text-muted-foreground">
+                <ShieldCheck size={16} className="text-green-600"/>
+                <span className="text-sm font-medium">Ambiente Seguro</span>
+              </div>
             </CardFooter>
           </form>
         </Form>
       </Card>
-      <div className="mt-4 flex items-center justify-center gap-2 text-muted-foreground">
-        <ShieldCheck size={16} />
-        <span className="text-sm font-medium">Ambiente Seguro</span>
-      </div>
     </>
   );
 }
