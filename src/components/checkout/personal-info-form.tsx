@@ -28,9 +28,6 @@ const formSchema = z.object({
   email: z.string().email({
     message: "Por favor, insira um endereço de e-mail válido.",
   }),
-  cpf: z.string().min(11, {
-    message: "CPF/CNPJ deve ter pelo menos 11 caracteres.",
-  }),
 });
 
 type UserData = z.infer<typeof formSchema>;
@@ -45,7 +42,6 @@ export default function PersonalInfoForm({ onSubmit }: PersonalInfoFormProps) {
     defaultValues: {
       name: "",
       email: "",
-      cpf: "",
     },
   });
 
@@ -105,18 +101,6 @@ export default function PersonalInfoForm({ onSubmit }: PersonalInfoFormProps) {
                   <FormItem>
                     <FormControl>
                       <Input placeholder="E-mail que receberá a compra" {...field} className="h-12" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="cpf"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormControl>
-                      <Input placeholder="Seu CPF/CNPJ" {...field} className="h-12" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

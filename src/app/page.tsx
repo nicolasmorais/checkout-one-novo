@@ -10,7 +10,6 @@ import { ShieldCheck, Phone } from "lucide-react";
 type UserData = {
   name: string;
   email: string;
-  cpf: string;
 };
 
 type CheckoutStep = "INFO" | "QR" | "SUCCESS";
