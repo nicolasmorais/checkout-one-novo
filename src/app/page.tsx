@@ -8,6 +8,7 @@ import QrCodeDisplay from "@/components/checkout/qr-code-display";
 import SuccessDisplay from "@/components/checkout/success-display";
 import { ShieldCheck } from "lucide-react";
 import Footer from "@/components/checkout/footer";
+import { Toaster } from "@/components/ui/toaster";
 
 type UserData = {
   name: string;
@@ -72,6 +73,7 @@ export default function Home() {
         </div>
       </main>
       <Footer />
+      <Toaster />
     </div>
   );
 }

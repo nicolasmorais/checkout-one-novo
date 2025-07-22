@@ -1,3 +1,4 @@
+
 "use client";
 
 import Image from "next/image";
@@ -10,8 +11,9 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Loader2 } from "lucide-react";
+import { Loader2, Copy, Check } from "lucide-react";
 import { useState } from "react";
+import { useToast } from "@/hooks/use-toast";
 
 interface QrCodeDisplayProps {
   userData: {
@@ -23,6 +25,19 @@ interface QrCodeDisplayProps {
 
 export default function QrCodeDisplay({ userData, onScanned }: QrCodeDisplayProps) {
   const [isSimulating, setIsSimulating] = useState(false);
+  const [isCopied, setIsCopied] = useState(false);
+  const { toast } = useToast();
+
+  const pixCode = "00020126360014br.gov.bcb.pix0114+551199999999952040000530398654059.905802BR5925Mago do CTR Solucoes Digita6009SAO PAULO62070503***6304E4A5";
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(pixCode);
+    setIsCopied(true);
+    toast({
+      description: "Código Pix copiado!",
+    });
+    setTimeout(() => setIsCopied(false), 2000);
+  };
 
   const handleSimulate = () => {
     setIsSimulating(true);
@@ -36,34 +51,48 @@ export default function QrCodeDisplay({ userData, onScanned }: QrCodeDisplayProp
   return (
     <Card className="w-full max-w-md text-center shadow-2xl">
       <CardHeader>
-        <CardTitle className="text-2xl font-headline">Almost there, {userData.name.split(' ')[0]}!</CardTitle>
+        <CardTitle className="text-2xl font-headline">Quase lá, {userData.name.split(' ')[0]}!</CardTitle>
         <CardDescription>
-          Step 2: Scan the QR code with your payment app
+          Pague com Pix para receber o acesso imediatamente.
         </CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col items-center gap-4">
         <div className="p-4 bg-white rounded-lg border">
           <Image
             src="https://placehold.co/256x256.png"
-            alt="QR Code for payment"
+            alt="QR Code para pagamento"
             width={256}
             height={256}
             data-ai-hint="qr code"
           />
         </div>
+        <Button onClick={handleCopy} className="w-full" variant="outline">
+          {isCopied ? <Check className="mr-2 h-4 w-4 text-green-500" /> : <Copy className="mr-2 h-4 w-4" />}
+          {isCopied ? "Copiado!" : "Copiar Código Pix"}
+        </Button>
+        <div className="text-sm text-muted-foreground text-left space-y-2 p-4 bg-gray-50 dark:bg-gray-800/50 rounded-md border">
+          <p className="font-bold">Como pagar com Pix:</p>
+          <ol className="list-decimal list-inside space-y-1">
+            <li>Abra o app do seu banco e escolha a opção Pix.</li>
+            <li>Escaneie o QR Code ou use o código do "Copia e Cola".</li>
+            <li>Confirme os dados e o valor.</li>
+            <li>Pronto! Pagamento aprovado na hora.</li>
+          </ol>
+        </div>
         <p className="text-sm text-muted-foreground">
-          This QR code will expire in 5 minutes.
+          Este QR code expira em 5 minutos.
         </p>
       </CardContent>
       <CardFooter className="flex-col gap-4">
         <p className="text-xs text-muted-foreground">
-          For demonstration purposes, click the button below to simulate a successful scan.
+          Para fins de demonstração, clique no botão abaixo para simular um pagamento bem-sucedido.
         </p>
-        <Button onClick={handleSimulate} className="w-full" variant="outline" disabled={isSimulating}>
+        <Button onClick={handleSimulate} className="w-full" variant="secondary" disabled={isSimulating}>
           {isSimulating && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          {isSimulating ? "Processing..." : "Simulate Successful Payment"}
+          {isSimulating ? "Processando..." : "Simular Pagamento Aprovado"}
         </Button>
       </CardFooter>
     </Card>
   );
 }
+
