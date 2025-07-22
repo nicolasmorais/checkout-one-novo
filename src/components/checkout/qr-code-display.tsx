@@ -12,7 +12,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Loader2, Copy, Check } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 
 interface QrCodeDisplayProps {
@@ -24,11 +24,22 @@ interface QrCodeDisplayProps {
 }
 
 export default function QrCodeDisplay({ userData, onScanned }: QrCodeDisplayProps) {
-  const [isSimulating, setIsSimulating] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
   const { toast } = useToast();
 
   const pixCode = "00020126360014br.gov.bcb.pix0114+551199999999952040000530398654059.905802BR5925Mago do CTR Solucoes Digita6009SAO PAULO62070503***6304E4A5";
+
+  useEffect(() => {
+    // This is a placeholder for a real payment check.
+    // In a real application, you would poll your backend to see if the payment has been completed.
+    const interval = setInterval(() => {
+      // For demonstration, we'll just move to the next step after 10 seconds.
+      // In a real scenario, this would be triggered by a successful payment webhook or API poll.
+      // onScanned();
+    }, 10000); 
+
+    return () => clearInterval(interval);
+  }, [onScanned]);
 
   const handleCopy = () => {
     navigator.clipboard.writeText(pixCode);
@@ -38,15 +49,6 @@ export default function QrCodeDisplay({ userData, onScanned }: QrCodeDisplayProp
     });
     setTimeout(() => setIsCopied(false), 2000);
   };
-
-  const handleSimulate = () => {
-    setIsSimulating(true);
-    // Simulate a delay for backend communication
-    setTimeout(() => {
-        onScanned();
-        setIsSimulating(false);
-    }, 2000);
-  }
 
   return (
     <Card className="w-full max-w-md text-center shadow-2xl">
@@ -85,14 +87,9 @@ export default function QrCodeDisplay({ userData, onScanned }: QrCodeDisplayProp
       </CardContent>
       <CardFooter className="flex-col gap-4">
         <p className="text-xs text-muted-foreground">
-          Para fins de demonstração, clique no botão abaixo para simular um pagamento bem-sucedido.
+          Aguardando pagamento...
         </p>
-        <Button onClick={handleSimulate} className="w-full" variant="secondary" disabled={isSimulating}>
-          {isSimulating && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          {isSimulating ? "Processando..." : "Simular Pagamento Aprovado"}
-        </Button>
       </CardFooter>
     </Card>
   );
 }
-
