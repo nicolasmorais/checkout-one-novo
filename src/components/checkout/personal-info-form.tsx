@@ -99,16 +99,6 @@ export default function PersonalInfoForm({ onSubmit }: PersonalInfoFormProps) {
         </div>
       </div>
       
-      <div className="mb-4 flex">
-        <Button variant="secondary" className="rounded-r-none flex-1 bg-gray-200">
-          BR Brasil
-        </Button>
-        <Button variant="ghost" className="rounded-l-none flex-1 border border-l-0">
-          <Globe className="mr-2 h-4 w-4" />
-          Internacional
-        </Button>
-      </div>
-
       <Card className="w-full max-w-md shadow-lg">
         <CardHeader>
           <h3 className="font-bold text-lg">Dados Pessoais</h3>
