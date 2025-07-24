@@ -24,7 +24,7 @@ const CreatePaymentOutputSchema = z.object({
   qrCode: z
     .string()
     .describe(
-      "A QR code image for the payment, as a data URI that must include a MIME type and use Base64 encoding. Expected format: 'data:<mimetype>;base64,<encoded_data>'."
+      "A QR code image for the payment, as a data URI that must include a MIME type and use Base64 encoding. Expected format: 'data:<mimetype>;base64,<encoded_data>'"
     ),
 });
 export type CreatePaymentOutput = z.infer<typeof CreatePaymentOutputSchema>;
