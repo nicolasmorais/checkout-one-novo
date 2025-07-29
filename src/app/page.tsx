@@ -10,6 +10,8 @@ import { ShieldCheck } from "lucide-react";
 import Footer from "@/components/checkout/footer";
 import { Toaster } from "@/components/ui/toaster";
 import { createPayment, CreatePaymentInput } from "@/ai/flows/create-payment-flow";
+import { saveSale, Sale } from "@/services/sales-service";
+
 
 type UserData = {
   name: string;
@@ -35,6 +37,19 @@ export default function Home() {
     try {
       const paymentResult = await createPayment(data);
       setPaymentData(paymentResult);
+      
+      const newSale: Sale = {
+        id: new Date().getTime().toString(), // Simple unique ID
+        name: data.name,
+        email: data.email,
+        product: "3 Pilares Dos Criativos",
+        amount: "R$ 9,90",
+        status: "Pendente", // Or "Aprovado" if we could confirm
+        pixCode: paymentResult.pixCode,
+        date: new Date(),
+      };
+      saveSale(newSale);
+      
       setStep("QR");
     } catch (error) {
       console.error("Failed to create payment", error);
@@ -45,7 +60,8 @@ export default function Home() {
   };
 
   const handleQrScanned = () => {
-    setStep("SUCCESS");
+    // This flow is currently disabled as per instructions.
+    // setStep("SUCCESS");
   };
 
   const renderStep = () => {

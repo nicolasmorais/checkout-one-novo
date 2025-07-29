@@ -1,4 +1,7 @@
 
+"use client";
+
+import { useEffect, useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -17,51 +20,16 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { ShoppingCart } from "lucide-react";
-
-const recentSales = [
-    {
-        name: "Olivia Martin",
-        email: "olivia.martin@email.com",
-        product: "3 Pilares Dos Criativos",
-        amount: "R$ 9,90",
-        status: "Aprovado",
-        avatar: "https://placehold.co/40x40.png"
-    },
-    {
-        name: "Jackson Lee",
-        email: "jackson.lee@email.com",
-        product: "3 Pilares Dos Criativos",
-        amount: "R$ 9,90",
-        status: "Aprovado",
-        avatar: "https://placehold.co/40x40.png"
-    },
-    {
-        name: "Isabella Nguyen",
-        email: "isabella.nguyen@email.com",
-        product: "3 Pilares Dos Criativos",
-        amount: "R$ 9,90",
-        status: "Reembolsado",
-        avatar: "https://placehold.co/40x40.png"
-    },
-    {
-        name: "William Kim",
-        email: "will@email.com",
-        product: "3 Pilares Dos Criativos",
-        amount: "R$ 9,90",
-        status: "Aprovado",
-        avatar: "https://placehold.co/40x40.png"
-    },
-    {
-        name: "Sofia Davis",
-        email: "sofia.davis@email.com",
-        product: "3 Pilares Dos Criativos",
-        amount: "R$ 9,90",
-        status: "Pendente",
-        avatar: "https://placehold.co/40x40.png"
-    },
-];
+import { getSales, Sale } from "@/services/sales-service";
 
 export default function SalesPage() {
+  const [recentSales, setRecentSales] = useState<Sale[]>([]);
+
+  useEffect(() => {
+    // Since this runs on the client, it's safe to call localStorage here.
+    setRecentSales(getSales());
+  }, []);
+
   return (
     <Card>
       <CardHeader>
@@ -70,7 +38,7 @@ export default function SalesPage() {
             <CardTitle>Vendas Recentes</CardTitle>
         </div>
         <CardDescription>
-          Uma lista das suas vendas mais recentes.
+          Uma lista das suas vendas mais recentes. (Dados salvos neste navegador)
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -80,16 +48,18 @@ export default function SalesPage() {
               <TableHead>Cliente</TableHead>
               <TableHead className="hidden sm:table-cell">Produto</TableHead>
               <TableHead className="hidden sm:table-cell">Status</TableHead>
+              <TableHead className="hidden md:table-cell">Data</TableHead>
               <TableHead className="text-right">Valor</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {recentSales.map((sale, index) => (
-              <TableRow key={index}>
+            {recentSales.length > 0 ? (
+              recentSales.map((sale) => (
+              <TableRow key={sale.id}>
                 <TableCell>
                   <div className="flex items-center gap-4">
                     <Avatar className="hidden h-9 w-9 sm:flex" data-ai-hint="person avatar">
-                      <AvatarImage src={sale.avatar} alt="Avatar" />
+                      <AvatarImage src={`https://placehold.co/40x40.png?text=${sale.name.charAt(0)}`} alt="Avatar" />
                       <AvatarFallback>{sale.name.charAt(0)}</AvatarFallback>
                     </Avatar>
                     <div className="grid gap-1">
@@ -97,7 +67,7 @@ export default function SalesPage() {
                         {sale.name}
                       </p>
                       <p className="text-sm text-muted-foreground md:hidden">
-                        {sale.product}
+                        {sale.email}
                       </p>
                     </div>
                   </div>
@@ -116,9 +86,19 @@ export default function SalesPage() {
                     {sale.status}
                   </Badge>
                 </TableCell>
+                <TableCell className="hidden md:table-cell">
+                  {new Date(sale.date).toLocaleString()}
+                </TableCell>
                 <TableCell className="text-right">{sale.amount}</TableCell>
               </TableRow>
-            ))}
+              ))
+            ) : (
+                <TableRow>
+                    <TableCell colSpan={5} className="text-center">
+                        Nenhuma venda encontrada neste navegador.
+                    </TableCell>
+                </TableRow>
+            )}
           </TableBody>
         </Table>
       </CardContent>
