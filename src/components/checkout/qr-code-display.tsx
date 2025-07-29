@@ -12,7 +12,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Copy, Check } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 
 interface QrCodeDisplayProps {
@@ -30,17 +30,6 @@ interface QrCodeDisplayProps {
 export default function QrCodeDisplay({ userData, paymentData, onScanned }: QrCodeDisplayProps) {
   const [isCopied, setIsCopied] = useState(false);
   const { toast } = useToast();
-
-  useEffect(() => {
-    // This simulates polling a backend to check for payment confirmation.
-    const interval = setInterval(() => {
-      // In a real app, you'd call a backend endpoint here.
-      // For this demo, we'll confirm payment after 10 seconds.
-      onScanned();
-    }, 10000); 
-
-    return () => clearInterval(interval);
-  }, [onScanned]);
 
   const handleCopy = () => {
     navigator.clipboard.writeText(paymentData.pixCode);
