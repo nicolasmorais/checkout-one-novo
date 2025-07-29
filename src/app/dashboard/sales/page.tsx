@@ -19,16 +19,51 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { ShoppingCart } from "lucide-react";
-import { getSales, Sale } from "@/services/sales-service";
+import { Button } from "@/components/ui/button";
+import { ShoppingCart, RefreshCw, Loader2 } from "lucide-react";
+import { getSales, updateSaleStatus, checkSaleStatus, Sale } from "@/services/sales-service";
+import { useToast } from "@/hooks/use-toast";
+
 
 export default function SalesPage() {
-  const [recentSales, setRecentSales] = useState<Sale[]>([]);
+  const [sales, setSales] = useState<Sale[]>([]);
+  const [loadingStates, setLoadingStates] = useState<Record<string, boolean>>({});
+  const { toast } = useToast();
 
   useEffect(() => {
-    // Since this runs on the client, it's safe to call localStorage here.
-    setRecentSales(getSales());
+    setSales(getSales());
   }, []);
+
+  const handleCheckStatus = async (transactionId: string) => {
+    setLoadingStates(prev => ({ ...prev, [transactionId]: true }));
+    try {
+      const result = await checkSaleStatus(transactionId);
+      if (result && result.status) {
+        updateSaleStatus(transactionId, result.status as Sale['status']);
+        setSales(currentSales => 
+            currentSales.map(sale => 
+                sale.transactionId === transactionId ? { ...sale, status: result.status as Sale['status'] } : sale
+            )
+        );
+        toast({
+            description: `Status da transação atualizado para: ${result.status}`,
+        });
+      } else {
+        toast({
+            variant: "destructive",
+            description: "Não foi possível obter o status da transação.",
+        });
+      }
+    } catch (error) {
+        console.error("Failed to check status", error);
+        toast({
+            variant: "destructive",
+            description: "Ocorreu um erro ao verificar o status.",
+        });
+    } finally {
+        setLoadingStates(prev => ({ ...prev, [transactionId]: false }));
+    }
+  };
 
   return (
     <Card>
@@ -51,11 +86,12 @@ export default function SalesPage() {
               <TableHead className="hidden sm:table-cell">Status</TableHead>
               <TableHead className="hidden md:table-cell">Data</TableHead>
               <TableHead className="text-right">Valor</TableHead>
+              <TableHead className="text-right">Ações</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {recentSales.length > 0 ? (
-              recentSales.map((sale) => (
+            {sales.length > 0 ? (
+              sales.map((sale) => (
               <TableRow key={sale.id}>
                 <TableCell>
                   <div className="flex items-center gap-4">
@@ -96,11 +132,28 @@ export default function SalesPage() {
                   {new Date(sale.date).toLocaleString()}
                 </TableCell>
                 <TableCell className="text-right">{sale.amount}</TableCell>
+                <TableCell className="text-right">
+                    {sale.transactionId && (
+                        <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            onClick={() => handleCheckStatus(sale.transactionId)}
+                            disabled={loadingStates[sale.transactionId]}
+                        >
+                            {loadingStates[sale.transactionId] ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                                <RefreshCw className="h-4 w-4" />
+                            )}
+                            <span className="sr-only">Verificar Status</span>
+                        </Button>
+                    )}
+                </TableCell>
               </TableRow>
               ))
             ) : (
                 <TableRow>
-                    <TableCell colSpan={6} className="text-center">
+                    <TableCell colSpan={7} className="text-center">
                         Nenhuma venda encontrada neste navegador.
                     </TableCell>
                 </TableRow>

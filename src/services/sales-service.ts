@@ -1,6 +1,8 @@
 
 "use client";
 
+import { checkPaymentStatus as checkPaymentStatusFlow, CheckPaymentStatusOutput } from "@/ai/flows/check-payment-status-flow";
+
 // Define the structure of a sale object
 export interface Sale {
   id: string; // Internal ID for React keys
@@ -62,4 +64,39 @@ export function saveSale(newSale: Sale): void {
   } catch (error) {
     console.error("Failed to save sale to localStorage", error);
   }
+}
+
+
+/**
+ * Updates the status of a specific sale in localStorage.
+ * @param {string} transactionId The ID of the transaction to update.
+ * @param {Sale['status']} newStatus The new status.
+ */
+export function updateSaleStatus(transactionId: string, newStatus: Sale['status']): void {
+    if (typeof window === "undefined") {
+      return;
+    }
+    try {
+      const existingSales = getSales();
+      const updatedSales = existingSales.map(sale => 
+        sale.transactionId === transactionId ? { ...sale, status: newStatus } : sale
+      );
+      window.localStorage.setItem(SALES_STORAGE_KEY, JSON.stringify(updatedSales));
+    } catch (error) {
+      console.error("Failed to update sale status in localStorage", error);
+    }
+}
+  
+/**
+ * Calls the backend flow to check the payment status.
+ * @param {string} transactionId The ID of the transaction to check.
+ * @returns {Promise<CheckPaymentStatusOutput | null>}
+ */
+export async function checkSaleStatus(transactionId: string): Promise<CheckPaymentStatusOutput | null> {
+    try {
+      return await checkPaymentStatusFlow(transactionId);
+    } catch (error) {
+      console.error("Error calling checkPaymentStatus flow:", error);
+      throw error; // Re-throw the error to be handled by the caller
+    }
 }
