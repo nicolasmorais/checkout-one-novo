@@ -74,7 +74,9 @@ export default function SalesPage() {
                   </div>
                 </TableCell>
                 <TableCell className="hidden sm:table-cell">
-                  <Badge variant="outline">{sale.transactionId.substring(0, 10)}...</Badge>
+                  {sale.transactionId && (
+                    <Badge variant="outline">{sale.transactionId.substring(0, 10)}...</Badge>
+                  )}
                 </TableCell>
                 <TableCell className="hidden sm:table-cell">
                   {sale.product}
