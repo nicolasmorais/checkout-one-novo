@@ -58,7 +58,7 @@ export default function QrCodeDisplay({ userData, paymentData, onScanned }: QrCo
             data-ai-hint="qr code"
           />
         </div>
-        <Button onClick={handleCopy} className="w-full" variant="outline">
+        <Button onClick={handleCopy} className="w-full">
           {isCopied ? <Check className="mr-2 h-4 w-4 text-green-500" /> : <Copy className="mr-2 h-4 w-4" />}
           {isCopied ? "Copiado!" : "Copiar Código Pix"}
         </Button>
