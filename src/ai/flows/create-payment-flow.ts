@@ -43,17 +43,47 @@ const createPaymentFlow = ai.defineFlow(
     outputSchema: CreatePaymentOutputSchema,
   },
   async (input) => {
-    // In a real application, you would integrate with a payment gateway provider here.
-    // For this example, we will return a simulated PIX code and a placeholder QR code.
-    
     console.log(`Creating payment for ${input.name} (${input.email})`);
+    
+    const PUSHINPAY_API_URL = "https://api.pushinpay.com.br/api/pix/cashIn";
+    const API_TOKEN = process.env.PUSHINPAY_API_TOKEN;
 
-    const pixCode = "00020126360014br.gov.bcb.pix0114+551199999999952040000530398654059.905802BR5925Mago do CTR Solucoes Digita6009SAO PAULO62070503***6304E4A5";
-    const qrCode = "https://placehold.co/256x256.png"; // Placeholder QR code
+    if (!API_TOKEN) {
+      throw new Error("Push In Pay API token is not configured.");
+    }
+    
+    const productValueInCents = 990; // R$ 9,90
 
-    return {
-      pixCode,
-      qrCode,
-    };
+    try {
+      const response = await fetch(PUSHINPAY_API_URL, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${API_TOKEN}`,
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          value: productValueInCents,
+          webhook_url: "https://seudominio.com/webhook-pix", // Example webhook
+          "split_rules": []
+        }),
+      });
+
+      if (!response.ok) {
+        const errorBody = await response.text();
+        throw new Error(`API request failed with status ${response.status}: ${errorBody}`);
+      }
+
+      const data = await response.json();
+
+      return {
+        pixCode: data.qr_code,
+        qrCode: data.qr_code_base64,
+      };
+
+    } catch (error) {
+      console.error("Error creating Push In Pay payment:", error);
+      throw new Error("Failed to create PIX payment.");
+    }
   }
 );
