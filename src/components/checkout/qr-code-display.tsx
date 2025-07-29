@@ -14,16 +14,14 @@ import {
 import { Copy, Check } from "lucide-react";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
+import { CreatePaymentOutput } from "@/ai/flows/create-payment-flow";
 
 interface QrCodeDisplayProps {
   userData: {
     name: string;
     email: string;
   };
-  paymentData: {
-    qrCode: string;
-    pixCode: string;
-  };
+  paymentData: CreatePaymentOutput;
   onScanned: () => void;
 }
 

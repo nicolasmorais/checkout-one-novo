@@ -46,6 +46,7 @@ export default function SalesPage() {
           <TableHeader>
             <TableRow>
               <TableHead>Cliente</TableHead>
+              <TableHead className="hidden sm:table-cell">ID da Transação</TableHead>
               <TableHead className="hidden sm:table-cell">Produto</TableHead>
               <TableHead className="hidden sm:table-cell">Status</TableHead>
               <TableHead className="hidden md:table-cell">Data</TableHead>
@@ -73,6 +74,9 @@ export default function SalesPage() {
                   </div>
                 </TableCell>
                 <TableCell className="hidden sm:table-cell">
+                  <Badge variant="outline">{sale.transactionId.substring(0, 10)}...</Badge>
+                </TableCell>
+                <TableCell className="hidden sm:table-cell">
                   {sale.product}
                 </TableCell>
                 <TableCell className="hidden sm:table-cell">
@@ -94,7 +98,7 @@ export default function SalesPage() {
               ))
             ) : (
                 <TableRow>
-                    <TableCell colSpan={5} className="text-center">
+                    <TableCell colSpan={6} className="text-center">
                         Nenhuma venda encontrada neste navegador.
                     </TableCell>
                 </TableRow>

@@ -3,7 +3,8 @@
 
 // Define the structure of a sale object
 export interface Sale {
-  id: string;
+  id: string; // Internal ID for React keys
+  transactionId: string; // ID from the payment provider
   name: string;
   email: string;
   product: string;

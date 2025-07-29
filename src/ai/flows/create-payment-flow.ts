@@ -18,6 +18,7 @@ const CreatePaymentInputSchema = z.object({
 export type CreatePaymentInput = z.infer<typeof CreatePaymentInputSchema>;
 
 const CreatePaymentOutputSchema = z.object({
+  transactionId: z.string().describe('The unique ID for the transaction.'),
   pixCode: z
     .string()
     .describe('The PIX code for the payment.'),
@@ -77,6 +78,7 @@ const createPaymentFlow = ai.defineFlow(
       const data = await response.json();
 
       return {
+        transactionId: data.id,
         pixCode: data.qr_code,
         qrCode: data.qr_code_base64,
       };

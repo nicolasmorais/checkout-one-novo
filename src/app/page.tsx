@@ -9,7 +9,7 @@ import SuccessDisplay from "@/components/checkout/success-display";
 import { ShieldCheck } from "lucide-react";
 import Footer from "@/components/checkout/footer";
 import { Toaster } from "@/components/ui/toaster";
-import { createPayment, CreatePaymentInput } from "@/ai/flows/create-payment-flow";
+import { createPayment, CreatePaymentInput, CreatePaymentOutput } from "@/ai/flows/create-payment-flow";
 import { saveSale, Sale } from "@/services/sales-service";
 
 
@@ -18,17 +18,12 @@ type UserData = {
   email: string;
 };
 
-type PaymentData = {
-  qrCode: string;
-  pixCode: string;
-};
-
 type CheckoutStep = "INFO" | "QR" | "SUCCESS";
 
 export default function Home() {
   const [step, setStep] = useState<CheckoutStep>("INFO");
   const [userData, setUserData] = useState<UserData | null>(null);
-  const [paymentData, setPaymentData] = useState<PaymentData | null>(null);
+  const [paymentData, setPaymentData] = useState<CreatePaymentOutput | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
   const handleInfoSubmit = async (data: CreatePaymentInput) => {
@@ -40,6 +35,7 @@ export default function Home() {
       
       const newSale: Sale = {
         id: new Date().getTime().toString(), // Simple unique ID
+        transactionId: paymentResult.transactionId,
         name: data.name,
         email: data.email,
         product: "3 Pilares Dos Criativos",
