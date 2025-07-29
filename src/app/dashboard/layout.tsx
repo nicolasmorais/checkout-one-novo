@@ -1,3 +1,4 @@
+
 "use client";
 
 import {
@@ -16,6 +17,18 @@ import { Home, BarChart, ShoppingCart, Users, Settings, LogOut } from "lucide-re
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
+const menuItems = [
+    { path: "/dashboard", icon: Home, label: "Visão Geral" },
+    { path: "/dashboard/sales", icon: ShoppingCart, label: "Vendas" },
+    { path: "/dashboard/analytics", icon: BarChart, label: "Análises" },
+    { path: "/dashboard/users", icon: Users, label: "Usuários" },
+];
+
+const bottomMenuItems = [
+    { path: "/dashboard/settings", icon: Settings, label: "Configurações" },
+    { path: "/", icon: LogOut, label: "Sair" },
+];
+
 export default function DashboardLayout({
   children,
 }: {
@@ -26,6 +39,11 @@ export default function DashboardLayout({
   const isActive = (path: string) => {
     return pathname === path;
   };
+
+  const getPageTitle = () => {
+    const activeItem = menuItems.find(item => item.path === pathname);
+    return activeItem ? activeItem.label : "Dashboard";
+  }
 
   return (
     <SidebarProvider>
@@ -40,58 +58,30 @@ export default function DashboardLayout({
         </SidebarHeader>
         <SidebarContent>
           <SidebarMenu>
-            <SidebarMenuItem>
-              <SidebarMenuButton asChild isActive={isActive("/dashboard")}>
-                <Link href="/dashboard">
-                  <Home />
-                  Visão Geral
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-            <SidebarMenuItem>
-              <SidebarMenuButton asChild isActive={isActive("/dashboard/sales")}>
-                <Link href="#">
-                  <ShoppingCart />
-                  Vendas
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-            <SidebarMenuItem>
-              <SidebarMenuButton asChild isActive={isActive("/dashboard/analytics")}>
-                <Link href="#">
-                  <BarChart />
-                  Análises
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-            <SidebarMenuItem>
-              <SidebarMenuButton asChild isActive={isActive("/dashboard/users")}>
-                <Link href="#">
-                  <Users />
-                  Usuários
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
+            {menuItems.map(item => (
+                <SidebarMenuItem key={item.path}>
+                    <SidebarMenuButton asChild isActive={isActive(item.path)}>
+                        <Link href={item.path}>
+                            <item.icon />
+                            {item.label}
+                        </Link>
+                    </SidebarMenuButton>
+                </SidebarMenuItem>
+            ))}
           </SidebarMenu>
         </SidebarContent>
         <SidebarFooter>
           <SidebarMenu>
-            <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={isActive("/dashboard/settings")}>
-                  <Link href="#">
-                    <Settings />
-                    Configurações
-                  </Link>
-                </SidebarMenuButton>
-            </SidebarMenuItem>
-            <SidebarMenuItem>
-                <SidebarMenuButton asChild>
-                  <Link href="/">
-                    <LogOut />
-                    Sair
-                  </Link>
-                </SidebarMenuButton>
-            </SidebarMenuItem>
+            {bottomMenuItems.map(item => (
+                <SidebarMenuItem key={item.path}>
+                    <SidebarMenuButton asChild isActive={isActive(item.path)}>
+                        <Link href={item.path === '/' ? '/' : '#'}>
+                            <item.icon />
+                            {item.label}
+                        </Link>
+                    </SidebarMenuButton>
+                </SidebarMenuItem>
+            ))}
           </SidebarMenu>
         </SidebarFooter>
       </Sidebar>
@@ -101,7 +91,7 @@ export default function DashboardLayout({
             <div className="md:hidden">
               <SidebarTrigger />
             </div>
-            <h1 className="text-2xl font-bold hidden md:block">Visão Geral</h1>
+            <h1 className="text-2xl font-bold hidden md:block">{getPageTitle()}</h1>
           </header>
           {children}
         </div>
