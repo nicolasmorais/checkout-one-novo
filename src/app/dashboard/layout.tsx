@@ -13,7 +13,7 @@ import {
   SidebarTrigger,
   SidebarContent,
 } from "@/components/ui/sidebar";
-import { Home, BarChart, ShoppingCart, Users, Settings, LogOut, User, Bell, Building, Paintbrush } from "lucide-react";
+import { Home, BarChart, ShoppingCart, Users, Settings, LogOut, Paintbrush } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import Logo from "@/components/ui/logo";
@@ -26,9 +26,6 @@ const menuItems = [
 ];
 
 const settingsMenuItems = [
-    { path: "#", icon: User, label: "Perfil" },
-    { path: "#", icon: Bell, label: "Notificações" },
-    { path: "#", icon: Building, label: "Organizações" },
     { path: "/dashboard/personalizacao", icon: Paintbrush, label: "Personalização" },
     { path: "#", icon: Settings, label: "Configurações" },
     { path: "/", icon: LogOut, label: "Sair" },
