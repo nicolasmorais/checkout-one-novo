@@ -36,19 +36,26 @@ export default function SalesPage() {
 
   const salesMetrics = useMemo(() => {
     const totalSales = sales.length;
-    const approvedSales = sales.filter(sale => sale.status === 'Aprovado').length;
-    const approvalRate = totalSales > 0 ? (approvedSales / totalSales) * 100 : 0;
+    const approvedSales = sales.filter(sale => sale.status === 'Aprovado');
+    const approvedSalesCount = approvedSales.length;
+    const approvalRate = totalSales > 0 ? (approvedSalesCount / totalSales) * 100 : 0;
     
     const totalValue = sales.reduce((acc, sale) => {
         const value = parseFloat(sale.amount.replace('R$ ', '').replace(',', '.'));
         return acc + value;
     }, 0);
 
+    const approvedValue = approvedSales.reduce((acc, sale) => {
+        const value = parseFloat(sale.amount.replace('R$ ', '').replace(',', '.'));
+        return acc + value;
+    }, 0);
+
     return {
       totalSales,
-      approvedSales,
+      approvedSales: approvedSalesCount,
       approvalRate: approvalRate.toFixed(1),
       totalValue: new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(totalValue),
+      approvedValue: new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(approvedValue),
     };
   }, [sales]);
 
@@ -86,7 +93,7 @@ export default function SalesPage() {
 
   return (
     <div className="space-y-6">
-       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Valor Total</CardTitle>
@@ -101,25 +108,13 @@ export default function SalesPage() {
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Compras Recentes</CardTitle>
-            <ShoppingCart className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium">Valor Aprovado</CardTitle>
+            <DollarSign className="h-4 w-4 text-green-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{salesMetrics.totalSales}</div>
+            <div className="text-2xl font-bold">{salesMetrics.approvedValue}</div>
             <p className="text-xs text-muted-foreground">
-              Total de vendas registradas no navegador.
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Compras Aprovadas</CardTitle>
-            <CheckCircle className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{salesMetrics.approvedSales}</div>
-            <p className="text-xs text-muted-foreground">
-              Vendas com status 'Aprovado'.
+              Soma das vendas aprovadas.
             </p>
           </CardContent>
         </Card>
@@ -140,7 +135,7 @@ export default function SalesPage() {
         <CardHeader>
           <div className="flex items-center gap-2">
               <ShoppingCart className="h-5 w-5" />
-              <CardTitle>Vendas Recentes</CardTitle>
+              <CardTitle>Vendas Recentes ({salesMetrics.totalSales} totais, {salesMetrics.approvedSales} aprovadas)</CardTitle>
           </div>
           <CardDescription>
             Uma lista das suas vendas mais recentes. (Dados salvos neste navegador)
