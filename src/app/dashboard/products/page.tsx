@@ -51,6 +51,8 @@ const formSchema = z.object({
   name: z.string().min(3, "O nome deve ter pelo menos 3 caracteres."),
   description: z.string().min(3, "A descrição deve ter pelo menos 3 caracteres."),
   value: z.coerce.number().positive("O valor deve ser um número positivo."),
+  bannerUrl: z.string().url("Por favor, insira uma URL válida."),
+  logoUrl: z.string().url("Por favor, insira uma URL válida."),
 });
 
 type ProductFormData = z.infer<typeof formSchema>;
@@ -73,6 +75,8 @@ export default function ProductsPage() {
       name: "",
       description: "",
       value: 0,
+      bannerUrl: "https://placehold.co/600x150.png",
+      logoUrl: "https://placehold.co/80x80.png",
     },
   });
 
@@ -83,6 +87,8 @@ export default function ProductsPage() {
         name: data.name,
         description: data.description,
         value: data.value,
+        bannerUrl: data.bannerUrl,
+        logoUrl: data.logoUrl,
       };
       const savedProduct = saveProduct(newProduct);
       setProducts(currentProducts => [savedProduct, ...currentProducts]);
@@ -177,7 +183,7 @@ export default function ProductsPage() {
           <Form {...form}>
             <form onSubmit={form.handleSubmit(handleAddProduct)}>
               <CardContent className="space-y-4">
-                <div className="grid md:grid-cols-3 gap-4">
+                <div className="grid md:grid-cols-2 gap-4">
                   <FormField
                     control={form.control}
                     name="name"
@@ -186,19 +192,6 @@ export default function ProductsPage() {
                         <FormLabel>Nome do Produto</FormLabel>
                         <FormControl>
                           <Input placeholder="Ex: Ebook de Receitas" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="description"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Descrição (Subtítulo)</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Ex: Acesso Vitalício" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -218,6 +211,47 @@ export default function ProductsPage() {
                     )}
                   />
                 </div>
+                <FormField
+                    control={form.control}
+                    name="description"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Descrição (Subtítulo)</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Ex: Acesso Vitalício ao curso completo" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                 <div className="grid md:grid-cols-2 gap-4">
+                    <FormField
+                        control={form.control}
+                        name="bannerUrl"
+                        render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>URL do Banner (600x150)</FormLabel>
+                            <FormControl>
+                            <Input placeholder="https://..." {...field} />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                        )}
+                    />
+                    <FormField
+                        control={form.control}
+                        name="logoUrl"
+                        render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>URL da Logo (80x80)</FormLabel>
+                            <FormControl>
+                            <Input placeholder="https://..." {...field} />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                        )}
+                    />
+                 </div>
               </CardContent>
               <CardFooter>
                 <Button type="submit" disabled={isLoading}>

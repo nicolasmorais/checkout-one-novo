@@ -8,6 +8,8 @@ export interface Product {
   name: string;
   description: string; // New field for subtitle like "Acesso Vitalício"
   value: number; // Stored as a number
+  bannerUrl: string;
+  logoUrl: string;
 }
 
 const PRODUCTS_STORAGE_KEY = "firebase-studio-products";

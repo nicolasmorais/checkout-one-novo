@@ -29,6 +29,8 @@ const formSchema = z.object({
   name: z.string().min(3, "O nome deve ter pelo menos 3 caracteres."),
   description: z.string().min(3, "A descrição deve ter pelo menos 3 caracteres."),
   value: z.coerce.number().positive("O valor deve ser um número positivo."),
+  bannerUrl: z.string().url("Por favor, insira uma URL válida."),
+  logoUrl: z.string().url("Por favor, insira uma URL válida."),
 });
 
 type ProductFormData = z.infer<typeof formSchema>;
@@ -52,6 +54,8 @@ export default function EditProductDialog({
       name: product.name,
       description: product.description,
       value: product.value,
+      bannerUrl: product.bannerUrl,
+      logoUrl: product.logoUrl,
     },
   });
 
@@ -61,6 +65,8 @@ export default function EditProductDialog({
         name: product.name,
         description: product.description,
         value: product.value,
+        bannerUrl: product.bannerUrl,
+        logoUrl: product.logoUrl,
     });
   }, [product, form]);
 
@@ -120,6 +126,32 @@ export default function EditProductDialog({
                   <FormMessage />
                 </FormItem>
               )}
+            />
+            <FormField
+                control={form.control}
+                name="bannerUrl"
+                render={({ field }) => (
+                <FormItem>
+                    <FormLabel>URL do Banner (600x150)</FormLabel>
+                    <FormControl>
+                    <Input {...field} />
+                    </FormControl>
+                    <FormMessage />
+                </FormItem>
+                )}
+            />
+            <FormField
+                control={form.control}
+                name="logoUrl"
+                render={({ field }) => (
+                <FormItem>
+                    <FormLabel>URL da Logo (80x80)</FormLabel>
+                    <FormControl>
+                    <Input {...field} />
+                    </FormControl>
+                    <FormMessage />
+                </FormItem>
+                )}
             />
              <DialogFooter>
                 <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>

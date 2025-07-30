@@ -82,12 +82,13 @@ export default function PersonalInfoForm({ product, onSubmit, isLoading }: Perso
         <CardHeader className="p-4">
           <div className="flex items-start gap-4">
              <Image
-              src="https://placehold.co/80x80.png"
+              src={product.logoUrl}
               alt="Product Image"
               width={80}
               height={80}
               data-ai-hint="product image"
               className="rounded-md"
+              unoptimized
             />
             <div className="flex-1">
               <h2 className="text-xl font-bold">{product.name}</h2>

@@ -22,11 +22,12 @@ type UserData = {
 
 type CheckoutStep = "INFO" | "QR" | "SUCCESS";
 
-const DEFAULT_PRODUCT = {
-  name: "3 Pilares Dos Criativos",
-  description: "Acesso ao curso completo",
+const DEFAULT_PRODUCT: Omit<Product, 'id' | 'slug'> = {
+  name: "Produto Padrão",
+  description: "Acesso ao item selecionado",
   value: 9.90,
-  slug: "default"
+  bannerUrl: "https://placehold.co/600x150.png",
+  logoUrl: "https://placehold.co/80x80.png"
 };
 
 function CheckoutPageContent() {
@@ -119,12 +120,13 @@ function CheckoutPageContent() {
       <main className="flex-grow flex w-full flex-col items-center bg-background p-4 font-body">
         <div className="w-full max-w-md">
           <Image
-            src="https://placehold.co/600x150.png"
+            src={product.bannerUrl}
             alt="Banner"
             width={600}
             height={150}
             className="mb-4 w-full rounded-md"
             data-ai-hint="advertisement banner"
+            unoptimized
           />
           <div className="mb-4 flex items-center justify-center gap-2 rounded-md bg-primary p-3 text-primary-foreground">
             <ShieldCheck />
