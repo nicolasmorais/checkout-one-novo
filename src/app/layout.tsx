@@ -1,5 +1,7 @@
+
 import type {Metadata} from 'next';
 import './globals.css';
+import ThemeUpdater from '@/components/theme-updater';
 
 export const metadata: Metadata = {
   title: 'Firebase Studio App',
@@ -17,6 +19,7 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=Inter&display=swap" rel="stylesheet" />
+        <ThemeUpdater />
       </head>
       <body className="font-body antialiased">{children}</body>
     </html>
