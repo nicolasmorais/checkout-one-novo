@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { DollarSign, ShoppingCart, Percent, BarChart2, Download, Settings, Users } from 'lucide-react';
+import { DollarSign, ShoppingCart, Percent, BarChart2, Users } from 'lucide-react';
 import { Sale, getSales } from '@/services/sales-service';
 import { Product, getProducts } from '@/services/products-service';
 
@@ -105,10 +105,6 @@ export default function AnalyticsPage() {
             <Button variant={period === 'today' ? 'default' : 'outline'} onClick={() => setPeriod('today')}>Hoje</Button>
             <Button variant={period === '7d' ? 'default' : 'outline'} onClick={() => setPeriod('7d')}>Últimos 7 dias</Button>
             <Button variant={period === '30d' ? 'default' : 'outline'} onClick={() => setPeriod('30d')}>Últimos 30 dias</Button>
-        </div>
-        <div className="flex items-center gap-2">
-            <Button variant="outline"><Download className="mr-2 h-4 w-4" /> Exportar Dados</Button>
-            <Button variant="outline"><Settings className="mr-2 h-4 w-4" /> Personalizar Widgets</Button>
         </div>
       </div>
 
