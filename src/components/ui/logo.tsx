@@ -19,7 +19,7 @@ export default function Logo() {
             state === "collapsed" ? "opacity-0" : "opacity-100"
         )}
         >
-            <span className="text-primary">Soce</span>AI
+            <span className="text-primary">One</span>Conversion
         </div>
     </div>
   );
