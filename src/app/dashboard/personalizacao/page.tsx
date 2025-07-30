@@ -2,10 +2,11 @@
 "use client";
 
 import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useToast } from "@/hooks/use-toast";
 
 // Helper to determine if the text on the button should be black or white
 function getContrastColor(hex: string): string {
@@ -31,11 +32,20 @@ function getContrastColor(hex: string): string {
 
 export default function PersonalizacaoPage() {
   const [primaryColor, setPrimaryColor] = useState("#6d28d9");
+  const { toast } = useToast();
 
   const previewStyle: React.CSSProperties = {
     backgroundColor: primaryColor,
     color: getContrastColor(primaryColor),
   };
+
+  const handleApply = () => {
+    toast({
+        title: "Como Aplicar a Cor",
+        description: "Para salvar a nova cor primária, diga-me no chat: 'Aplicar a cor primária com o valor [seu código hexadecimal]'.",
+        duration: 8000,
+    });
+  }
 
   return (
     <div className="space-y-6">
@@ -47,9 +57,7 @@ export default function PersonalizacaoPage() {
           <div className="space-y-4">
             <h3 className="text-lg font-medium">Cor Primária (Hexadecimal)</h3>
             <p className="text-sm text-muted-foreground">
-              Insira o código hexadecimal para a cor primária do seu checkout.
-              <br />
-              Quando decidir, me diga qual valor você quer usar e eu aplicarei a mudança em todo o site.
+              Use o campo abaixo para testar diferentes cores. A pré-visualização será atualizada automaticamente.
             </p>
             <div className="max-w-xs">
               <Label htmlFor="hex-color">Código da Cor</Label>
@@ -74,6 +82,14 @@ export default function PersonalizacaoPage() {
             </div>
           </div>
         </CardContent>
+        <CardFooter className="border-t px-6 py-4">
+            <div className="w-full">
+                <p className="text-sm text-muted-foreground mb-4">
+                    Quando decidir qual cor usar, clique no botão abaixo e siga as instruções para que eu possa aplicá-la em todo o site para você.
+                </p>
+                <Button onClick={handleApply}>Aplicar Alterações</Button>
+            </div>
+        </CardFooter>
       </Card>
     </div>
   );
