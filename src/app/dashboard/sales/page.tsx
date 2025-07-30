@@ -2,6 +2,9 @@
 "use client";
 
 import { useEffect, useState, useMemo } from "react";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
+import { DateRange } from "react-day-picker";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -20,27 +23,56 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { ShoppingCart, RefreshCw, Loader2, CheckCircle, Percent, DollarSign } from "lucide-react";
+import {
+    ShoppingCart,
+    RefreshCw,
+    Loader2,
+    CheckCircle,
+    Percent,
+    DollarSign,
+    Calendar as CalendarIcon,
+} from "lucide-react";
 import { getSales, updateSaleStatus, checkSaleStatus, Sale } from "@/services/sales-service";
 import { useToast } from "@/hooks/use-toast";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { cn } from "@/lib/utils";
 
 
 export default function SalesPage() {
   const [sales, setSales] = useState<Sale[]>([]);
   const [loadingStates, setLoadingStates] = useState<Record<string, boolean>>({});
+  const [date, setDate] = useState<DateRange | undefined>();
   const { toast } = useToast();
 
   useEffect(() => {
     setSales(getSales());
   }, []);
+  
+  const filteredSales = useMemo(() => {
+    if (!date?.from) {
+      return sales; // Return all sales if no start date is selected
+    }
+    const fromDate = date.from;
+    const toDate = date.to ? date.to : fromDate; // If no end date, use start date
+
+    // Set time to beginning and end of day for accurate filtering
+    fromDate.setHours(0, 0, 0, 0);
+    toDate.setHours(23, 59, 59, 999);
+
+    return sales.filter(sale => {
+      const saleDate = new Date(sale.date);
+      return saleDate >= fromDate && saleDate <= toDate;
+    });
+  }, [sales, date]);
 
   const salesMetrics = useMemo(() => {
-    const totalSales = sales.length;
-    const approvedSales = sales.filter(sale => sale.status === 'Aprovado');
+    const totalSales = filteredSales.length;
+    const approvedSales = filteredSales.filter(sale => sale.status === 'Aprovado');
     const approvedSalesCount = approvedSales.length;
     const approvalRate = totalSales > 0 ? (approvedSalesCount / totalSales) * 100 : 0;
     
-    const totalValue = sales.reduce((acc, sale) => {
+    const totalValue = filteredSales.reduce((acc, sale) => {
         const value = parseFloat(sale.amount.replace('R$ ', '').replace(',', '.'));
         return acc + value;
     }, 0);
@@ -57,7 +89,7 @@ export default function SalesPage() {
       totalValue: new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(totalValue),
       approvedValue: new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(approvedValue),
     };
-  }, [sales]);
+  }, [filteredSales]);
 
 
   const handleCheckStatus = async (transactionId: string) => {
@@ -93,6 +125,45 @@ export default function SalesPage() {
 
   return (
     <div className="space-y-6">
+        <div className="flex justify-start">
+            <Popover>
+                <PopoverTrigger asChild>
+                <Button
+                    id="date"
+                    variant={"outline"}
+                    className={cn(
+                    "w-[300px] justify-start text-left font-normal",
+                    !date && "text-muted-foreground"
+                    )}
+                >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {date?.from ? (
+                    date.to ? (
+                        <>
+                        {format(date.from, "LLL dd, y", { locale: ptBR })} -{" "}
+                        {format(date.to, "LLL dd, y", { locale: ptBR })}
+                        </>
+                    ) : (
+                        format(date.from, "LLL dd, y", { locale: ptBR })
+                    )
+                    ) : (
+                    <span>Escolha um período</span>
+                    )}
+                </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                    initialFocus
+                    mode="range"
+                    defaultMonth={date?.from}
+                    selected={date}
+                    onSelect={setDate}
+                    numberOfMonths={2}
+                    locale={ptBR}
+                />
+                </PopoverContent>
+            </Popover>
+        </div>
        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -102,7 +173,7 @@ export default function SalesPage() {
           <CardContent>
             <div className="text-2xl font-bold">{salesMetrics.totalValue}</div>
             <p className="text-xs text-muted-foreground">
-              Soma de todas as vendas.
+              Soma de todas as vendas no período.
             </p>
           </CardContent>
         </Card>
@@ -114,7 +185,7 @@ export default function SalesPage() {
           <CardContent>
             <div className="text-2xl font-bold">{salesMetrics.approvedValue}</div>
             <p className="text-xs text-muted-foreground">
-              Soma das vendas aprovadas.
+              Soma das vendas aprovadas no período.
             </p>
           </CardContent>
         </Card>
@@ -155,8 +226,8 @@ export default function SalesPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {sales.length > 0 ? (
-                sales.map((sale) => (
+              {filteredSales.length > 0 ? (
+                filteredSales.map((sale) => (
                 <TableRow key={sale.id}>
                   <TableCell>
                     <div className="flex items-center gap-4">
@@ -194,7 +265,7 @@ export default function SalesPage() {
                     </Badge>
                   </TableCell>
                   <TableCell className="hidden md:table-cell">
-                    {new Date(sale.date).toLocaleString()}
+                    {new Date(sale.date).toLocaleString('pt-BR')}
                   </TableCell>
                   <TableCell className="text-right">{sale.amount}</TableCell>
                   <TableCell className="text-right">
@@ -219,7 +290,7 @@ export default function SalesPage() {
               ) : (
                   <TableRow>
                       <TableCell colSpan={7} className="text-center">
-                          Nenhuma venda encontrada neste navegador.
+                          Nenhuma venda encontrada para o período selecionado.
                       </TableCell>
                   </TableRow>
               )}
