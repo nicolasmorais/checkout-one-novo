@@ -89,6 +89,7 @@ export default function PersonalInfoForm({ product, onSubmit, isLoading }: Perso
               data-ai-hint="product image"
               className="rounded-md"
               unoptimized
+              priority
             />
             <div className="flex-1">
               <h2 className="text-xl font-bold">{product.name}</h2>

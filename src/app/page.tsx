@@ -38,17 +38,24 @@ function CheckoutPageContent() {
   const [userData, setUserData] = useState<UserData | null>(null);
   const [paymentData, setPaymentData] = useState<CreatePaymentOutput | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [product, setProduct] = useState<Omit<Product, 'id'>>(DEFAULT_PRODUCT);
+  const [product, setProduct] = useState<Omit<Product, 'id' | 'slug'>>(DEFAULT_PRODUCT);
   const [productLoading, setProductLoading] = useState(true);
 
   useEffect(() => {
     if (productSlug) {
+        setProductLoading(true);
         const foundProduct = getProductBySlug(productSlug);
         if (foundProduct) {
             setProduct(foundProduct);
+        } else {
+            // Se o slug for inválido, volta para o produto padrão
+            setProduct(DEFAULT_PRODUCT);
         }
+        setProductLoading(false);
+    } else {
+        setProduct(DEFAULT_PRODUCT);
+        setProductLoading(false);
     }
-    setProductLoading(false);
   }, [productSlug]);
 
   const handleInfoSubmit = async (data: Omit<CreatePaymentInput, 'valueInCents'>) => {
@@ -87,14 +94,6 @@ function CheckoutPageContent() {
   };
 
   const renderStep = () => {
-    if (productLoading) {
-      return (
-         <Card className="w-full max-w-md shadow-lg flex items-center justify-center p-10">
-            <Loader2 className="h-8 w-8 animate-spin" />
-         </Card>
-      )
-    }
-
     switch (step) {
       case "INFO":
         return <PersonalInfoForm product={product} onSubmit={handleInfoSubmit} isLoading={isLoading} />;
@@ -115,6 +114,20 @@ function CheckoutPageContent() {
     }
   };
 
+  if (productLoading) {
+    return (
+       <div className="flex flex-col min-h-screen">
+          <main className="flex-grow flex w-full flex-col items-center justify-center bg-background p-4 font-body">
+            <Card className="w-full max-w-md shadow-lg flex items-center justify-center p-20">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            </Card>
+          </main>
+          <Footer />
+          <Toaster />
+       </div>
+    )
+  }
+
   return (
     <div className="flex flex-col min-h-screen">
       <main className="flex-grow flex w-full flex-col items-center bg-background p-4 font-body">
@@ -127,6 +140,7 @@ function CheckoutPageContent() {
             className="mb-4 w-full rounded-md"
             data-ai-hint="advertisement banner"
             unoptimized
+            priority
           />
           <div className="mb-4 flex items-center justify-center gap-2 rounded-md bg-primary p-3 text-primary-foreground">
             <ShieldCheck />
@@ -146,7 +160,17 @@ function CheckoutPageContent() {
 
 export default function Home() {
   return (
-    <Suspense fallback={<div>Carregando...</div>}>
+    <Suspense fallback={
+      <div className="flex flex-col min-h-screen">
+         <main className="flex-grow flex w-full flex-col items-center justify-center bg-background p-4 font-body">
+           <Card className="w-full max-w-md shadow-lg flex items-center justify-center p-20">
+             <Loader2 className="h-8 w-8 animate-spin text-primary" />
+           </Card>
+         </main>
+         <Footer />
+         <Toaster />
+      </div>
+    }>
       <CheckoutPageContent />
     </Suspense>
   )
