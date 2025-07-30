@@ -20,7 +20,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { ShoppingCart, RefreshCw, Loader2, CheckCircle, Percent } from "lucide-react";
+import { ShoppingCart, RefreshCw, Loader2, CheckCircle, Percent, DollarSign } from "lucide-react";
 import { getSales, updateSaleStatus, checkSaleStatus, Sale } from "@/services/sales-service";
 import { useToast } from "@/hooks/use-toast";
 
@@ -38,10 +38,17 @@ export default function SalesPage() {
     const totalSales = sales.length;
     const approvedSales = sales.filter(sale => sale.status === 'Aprovado').length;
     const approvalRate = totalSales > 0 ? (approvedSales / totalSales) * 100 : 0;
+    
+    const totalValue = sales.reduce((acc, sale) => {
+        const value = parseFloat(sale.amount.replace('R$ ', '').replace(',', '.'));
+        return acc + value;
+    }, 0);
+
     return {
       totalSales,
       approvedSales,
       approvalRate: approvalRate.toFixed(1),
+      totalValue: new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(totalValue),
     };
   }, [sales]);
 
@@ -79,7 +86,19 @@ export default function SalesPage() {
 
   return (
     <div className="space-y-6">
-       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Valor Total</CardTitle>
+            <DollarSign className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{salesMetrics.totalValue}</div>
+            <p className="text-xs text-muted-foreground">
+              Soma de todas as vendas.
+            </p>
+          </CardContent>
+        </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Compras Recentes</CardTitle>
