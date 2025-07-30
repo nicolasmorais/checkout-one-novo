@@ -24,6 +24,7 @@ type CheckoutStep = "INFO" | "QR" | "SUCCESS";
 
 const DEFAULT_PRODUCT = {
   name: "3 Pilares Dos Criativos",
+  description: "Acesso ao curso completo",
   value: 9.90,
   slug: "default"
 };

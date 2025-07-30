@@ -37,7 +37,7 @@ const formSchema = z.object({
 type UserData = z.infer<typeof formSchema>;
 
 interface PersonalInfoFormProps {
-  product: Omit<Product, 'id'>;
+  product: Omit<Product, 'id' | 'slug'>;
   onSubmit: (data: UserData) => void;
   isLoading: boolean;
 }
@@ -80,20 +80,19 @@ export default function PersonalInfoForm({ product, onSubmit, isLoading }: Perso
     <>
       <Card className="w-full max-w-md shadow-lg">
         <CardHeader className="p-4">
-          <div className="flex items-center gap-4">
-            <Image
+          <div className="flex items-start gap-4">
+             <Image
               src="https://placehold.co/80x80.png"
-              alt="Mago do CTR"
+              alt="Product Image"
               width={80}
               height={80}
-              data-ai-hint="man portrait"
-              className="rounded-full"
+              data-ai-hint="product image"
+              className="rounded-md"
             />
             <div className="flex-1">
-              <h2 className="font-bold">Mago do CTR</h2>
-              <p className="text-sm text-muted-foreground">{product.name}</p>
+              <h2 className="text-xl font-bold">{product.name}</h2>
+              <p className="text-sm text-muted-foreground">{product.description}</p>
               <div className="mt-2 flex items-baseline">
-                <p className="text-sm text-muted-foreground mr-2">Total</p>
                 <p className="text-2xl font-bold text-primary">
                   {product.value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
                 </p>

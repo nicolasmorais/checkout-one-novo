@@ -6,6 +6,7 @@ export interface Product {
   id: string; // Internal ID for React keys
   slug: string; // Unique slug for URL
   name: string;
+  description: string; // New field for subtitle like "Acesso Vitalício"
   value: number; // Stored as a number
 }
 

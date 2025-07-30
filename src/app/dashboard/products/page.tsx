@@ -37,6 +37,7 @@ import { Product, getProducts, saveProduct } from "@/services/products-service";
 
 const formSchema = z.object({
   name: z.string().min(3, "O nome deve ter pelo menos 3 caracteres."),
+  description: z.string().min(3, "A descrição deve ter pelo menos 3 caracteres."),
   value: z.coerce.number().positive("O valor deve ser um número positivo."),
 });
 
@@ -55,6 +56,7 @@ export default function ProductsPage() {
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: "",
+      description: "",
       value: 0,
     },
   });
@@ -64,6 +66,7 @@ export default function ProductsPage() {
     try {
       const newProduct: Omit<Product, 'id' | 'slug'> = {
         name: data.name,
+        description: data.description,
         value: data.value,
       };
       const savedProduct = saveProduct(newProduct);
@@ -104,7 +107,7 @@ export default function ProductsPage() {
         <Form {...form}>
           <form onSubmit={form.handleSubmit(handleAddProduct)}>
             <CardContent className="space-y-4">
-              <div className="grid md:grid-cols-2 gap-4">
+              <div className="grid md:grid-cols-3 gap-4">
                 <FormField
                   control={form.control}
                   name="name"
@@ -113,6 +116,19 @@ export default function ProductsPage() {
                       <FormLabel>Nome do Produto</FormLabel>
                       <FormControl>
                         <Input placeholder="Ex: Ebook de Receitas" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                 <FormField
+                  control={form.control}
+                  name="description"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Descrição (Subtítulo)</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Ex: Acesso Vitalício" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -155,6 +171,7 @@ export default function ProductsPage() {
             <TableHeader>
               <TableRow>
                 <TableHead>Nome do Produto</TableHead>
+                <TableHead>Descrição</TableHead>
                 <TableHead className="text-right">Valor</TableHead>
                 <TableHead className="text-right">Ações</TableHead>
               </TableRow>
@@ -164,6 +181,7 @@ export default function ProductsPage() {
                 products.map((product) => (
                   <TableRow key={product.id}>
                     <TableCell className="font-medium">{product.name}</TableCell>
+                    <TableCell>{product.description}</TableCell>
                     <TableCell className="text-right">
                       {product.value.toLocaleString("pt-BR", {
                         style: "currency",
@@ -184,7 +202,7 @@ export default function ProductsPage() {
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={3} className="text-center">
+                  <TableCell colSpan={4} className="text-center">
                     Nenhum produto cadastrado ainda.
                   </TableCell>
                 </TableRow>
