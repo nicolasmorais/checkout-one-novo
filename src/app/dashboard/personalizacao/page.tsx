@@ -1,26 +1,40 @@
 
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-export default function PersonalizacaoPage() {
-  const [hue, setHue] = useState("262.1");
-  const [saturation, setSaturation] = useState("83.3");
-  const [lightness, setLightness] = useState("57.8");
+// Helper to determine if the text on the button should be black or white
+function getContrastColor(hex: string): string {
+  if (!hex.startsWith('#')) return '#FFFFFF';
 
-  const previewHsl = useMemo(() => {
-    const h = parseFloat(hue) || 0;
-    const s = parseFloat(saturation) || 0;
-    const l = parseFloat(lightness) || 0;
-    return `${h} ${s}% ${l}%`;
-  }, [hue, saturation, lightness]);
+  // Expand shorthand form (e.g. "03F") to full form (e.g. "0033FF")
+  const shorthandRegex = /^#?([a-f\d])([a-f\d])([a-f\d])$/i;
+  hex = hex.replace(shorthandRegex, (m, r, g, b) => r + r + g + g + b + b);
   
+  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  if (!result) return '#FFFFFF';
+
+  const r = parseInt(result[1], 16);
+  const g = parseInt(result[2], 16);
+  const b = parseInt(result[3], 16);
+
+  // Simple luminance formula
+  const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+
+  return luminance > 0.5 ? '#000000' : '#FFFFFF';
+}
+
+
+export default function PersonalizacaoPage() {
+  const [primaryColor, setPrimaryColor] = useState("#6d28d9");
+
   const previewStyle: React.CSSProperties = {
-    "--primary-preview": previewHsl,
+    backgroundColor: primaryColor,
+    color: getContrastColor(primaryColor),
   };
 
   return (
@@ -31,54 +45,29 @@ export default function PersonalizacaoPage() {
         </CardHeader>
         <CardContent className="space-y-8">
           <div className="space-y-4">
-            <h3 className="text-lg font-medium">Cor Primária (HSL)</h3>
+            <h3 className="text-lg font-medium">Cor Primária (Hexadecimal)</h3>
             <p className="text-sm text-muted-foreground">
-              Insira os valores HSL para a cor primária do seu checkout.
+              Insira o código hexadecimal para a cor primária do seu checkout.
               <br />
-              Quando decidir, me diga quais valores você quer usar e eu aplicarei a mudança em todo o site.
+              Quando decidir, me diga qual valor você quer usar e eu aplicarei a mudança em todo o site.
             </p>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="hue">Matiz (Hue)</Label>
-                <Input
-                  id="hue"
-                  value={hue}
-                  onChange={(e) => setHue(e.target.value)}
-                  placeholder="Ex: 262.1"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="saturation">Saturação (Saturation)</Label>
-                <Input
-                  id="saturation"
-                  value={saturation}
-                  onChange={(e) => setSaturation(e.target.value)}
-                  placeholder="Ex: 83.3"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="lightness">Luminosidade (Lightness)</Label>
-                <Input
-                  id="lightness"
-                  value={lightness}
-                  onChange={(e) => setLightness(e.target.value)}
-                  placeholder="Ex: 57.8"
-                />
-              </div>
+            <div className="max-w-xs">
+              <Label htmlFor="hex-color">Código da Cor</Label>
+              <Input
+                id="hex-color"
+                value={primaryColor}
+                onChange={(e) => setPrimaryColor(e.target.value)}
+                placeholder="#6d28d9"
+              />
             </div>
           </div>
 
           <div className="space-y-4">
             <h3 className="text-lg font-medium">Pré-visualização</h3>
-            <div className="rounded-lg border p-6" style={previewStyle}>
+            <div className="rounded-lg border p-6">
               <div className="flex flex-col items-center gap-4">
                 <p className="text-muted-foreground">Este é um botão de exemplo:</p>
-                <Button
-                  style={{
-                    backgroundColor: `hsl(${previewHsl})`,
-                    color: parseFloat(lightness) > 50 ? '#000' : '#FFF' // Simple contrast check
-                  }}
-                >
+                <Button style={previewStyle}>
                   Botão de Exemplo
                 </Button>
               </div>
