@@ -22,7 +22,6 @@ const menuItems = [
     { path: "/dashboard", icon: Home, label: "Visão Geral" },
     { path: "/dashboard/sales", icon: ShoppingCart, label: "Vendas" },
     { path: "/dashboard/analytics", icon: BarChart, label: "Análises" },
-    { path: "/dashboard/users", icon: Users, label: "Usuários" },
 ];
 
 const settingsMenuItems = [
