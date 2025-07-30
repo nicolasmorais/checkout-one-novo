@@ -17,6 +17,8 @@ import { Home, BarChart, ShoppingCart, Settings, LogOut, Paintbrush, Package } f
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import Logo from "@/components/ui/logo";
+import { GlobalFilterProvider } from "@/contexts/global-filter-context";
+import GlobalDateFilter from "@/components/dashboard/global-date-filter";
 
 const menuItems = [
     { path: "/dashboard", icon: Home, label: "Visão Geral" },
@@ -47,56 +49,63 @@ export default function DashboardLayout({
     return activeItem ? activeItem.label : "Dashboard";
   }
 
+  const showGlobalFilter = ["/dashboard", "/dashboard/sales", "/dashboard/analytics"].includes(pathname);
+
   return (
-    <SidebarProvider>
-      <Sidebar>
-        <SidebarContent className="p-2">
-            <div className="p-2">
-              <Logo />
-            </div>
-            <SidebarGroup>
-                <SidebarGroupLabel>PRINCIPAL</SidebarGroupLabel>
-                <SidebarMenu>
-                    {menuItems.map(item => (
-                        <SidebarMenuItem key={item.path}>
-                            <SidebarMenuButton asChild isActive={isActive(item.path)}>
-                                <Link href={item.path}>
-                                    <item.icon />
-                                    {item.label}
-                                </Link>
-                            </SidebarMenuButton>
-                        </SidebarMenuItem>
-                    ))}
-                </SidebarMenu>
-            </SidebarGroup>
-            <SidebarGroup>
-                <SidebarGroupLabel>CONFIGURAÇÕES</SidebarGroupLabel>
-                <SidebarMenu>
-                     {settingsMenuItems.map(item => (
-                        <SidebarMenuItem key={item.label}>
-                            <SidebarMenuButton asChild isActive={isActive(item.path)}>
-                                <Link href={item.path === '/' ? '/' : item.path}>
-                                    <item.icon />
-                                    {item.label}
-                                </Link>
-                            </SidebarMenuButton>
-                        </SidebarMenuItem>
-                    ))}
-                </SidebarMenu>
-            </SidebarGroup>
-        </SidebarContent>
-      </Sidebar>
-      <SidebarInset>
-        <div className="p-4 md:p-6">
-          <header className="flex items-center justify-between mb-6">
-            <div className="md:hidden">
-              <SidebarTrigger />
-            </div>
-            <h1 className="text-2xl font-bold hidden md:block">{getPageTitle()}</h1>
-          </header>
-          {children}
-        </div>
-      </SidebarInset>
-    </SidebarProvider>
+    <GlobalFilterProvider>
+      <SidebarProvider>
+        <Sidebar>
+          <SidebarContent className="p-2">
+              <div className="p-2">
+                <Logo />
+              </div>
+              <SidebarGroup>
+                  <SidebarGroupLabel>PRINCIPAL</SidebarGroupLabel>
+                  <SidebarMenu>
+                      {menuItems.map(item => (
+                          <SidebarMenuItem key={item.path}>
+                              <SidebarMenuButton asChild isActive={isActive(item.path)}>
+                                  <Link href={item.path}>
+                                      <item.icon />
+                                      {item.label}
+                                  </Link>
+                              </SidebarMenuButton>
+                          </SidebarMenuItem>
+                      ))}
+                  </SidebarMenu>
+              </SidebarGroup>
+              <SidebarGroup>
+                  <SidebarGroupLabel>CONFIGURAÇÕES</SidebarGroupLabel>
+                  <SidebarMenu>
+                      {settingsMenuItems.map(item => (
+                          <SidebarMenuItem key={item.label}>
+                              <SidebarMenuButton asChild isActive={isActive(item.path)}>
+                                  <Link href={item.path === '/' ? '/' : item.path}>
+                                      <item.icon />
+                                      {item.label}
+                                  </Link>
+                              </SidebarMenuButton>
+                          </SidebarMenuItem>
+                      ))}
+                  </SidebarMenu>
+              </SidebarGroup>
+          </SidebarContent>
+        </Sidebar>
+        <SidebarInset>
+          <div className="p-4 md:p-6">
+            <header className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-2">
+                <div className="md:hidden">
+                  <SidebarTrigger />
+                </div>
+                <h1 className="text-2xl font-bold">{getPageTitle()}</h1>
+              </div>
+              {showGlobalFilter && <GlobalDateFilter />}
+            </header>
+            {children}
+          </div>
+        </SidebarInset>
+      </SidebarProvider>
+    </GlobalFilterProvider>
   );
 }

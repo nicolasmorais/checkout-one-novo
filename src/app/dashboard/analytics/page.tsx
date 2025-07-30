@@ -1,16 +1,12 @@
 
 "use client";
 
-import { useState, useEffect, useMemo } from 'react';
+import { useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { DollarSign, ShoppingCart, Percent, BarChart2, Users } from 'lucide-react';
-import { Sale, getSales } from '@/services/sales-service';
-import { Product, getProducts } from '@/services/products-service';
-
-type Period = 'today' | '7d' | '30d';
+import { useGlobalFilter } from '@/contexts/global-filter-context';
 
 interface SalesMetrics {
   totalOrders: number;
@@ -27,35 +23,7 @@ interface SalesMetrics {
 }
 
 export default function AnalyticsPage() {
-  const [sales, setSales] = useState<Sale[]>([]);
-  const [products, setProducts] = useState<Product[]>([]);
-  const [period, setPeriod] = useState<Period>('30d');
-
-  useEffect(() => {
-    setSales(getSales());
-    setProducts(getProducts());
-  }, []);
-
-  const filteredSales = useMemo(() => {
-    const now = new Date();
-    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-
-    return sales.filter(sale => {
-      const saleDate = new Date(sale.date);
-      if (period === 'today') {
-        return saleDate >= startOfToday;
-      }
-      if (period === '7d') {
-        const sevenDaysAgo = new Date(startOfToday.getTime() - 6 * 24 * 60 * 60 * 1000);
-        return saleDate >= sevenDaysAgo;
-      }
-      if (period === '30d') {
-        const thirtyDaysAgo = new Date(startOfToday.getTime() - 29 * 24 * 60 * 60 * 1000);
-        return saleDate >= thirtyDaysAgo;
-      }
-      return true;
-    });
-  }, [sales, period]);
+  const { filteredSales } = useGlobalFilter();
 
   const metrics: SalesMetrics = useMemo(() => {
     const totalOrders = filteredSales.length;
@@ -100,14 +68,6 @@ export default function AnalyticsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div className="flex items-center gap-2">
-            <Button variant={period === 'today' ? 'default' : 'outline'} onClick={() => setPeriod('today')}>Hoje</Button>
-            <Button variant={period === '7d' ? 'default' : 'outline'} onClick={() => setPeriod('7d')}>Últimos 7 dias</Button>
-            <Button variant={period === '30d' ? 'default' : 'outline'} onClick={() => setPeriod('30d')}>Últimos 30 dias</Button>
-        </div>
-      </div>
-
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">

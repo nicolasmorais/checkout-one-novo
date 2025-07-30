@@ -71,10 +71,11 @@ export function saveSale(newSale: Sale): void {
  * Updates the status of a specific sale in localStorage.
  * @param {string} transactionId The ID of the transaction to update.
  * @param {Sale['status']} newStatus The new status.
+ * @returns {Sale[]} The updated list of sales.
  */
-export function updateSaleStatus(transactionId: string, newStatus: Sale['status']): void {
+export function updateSaleStatus(transactionId: string, newStatus: Sale['status']): Sale[] {
     if (typeof window === "undefined") {
-      return;
+      return [];
     }
     try {
       const existingSales = getSales();
@@ -82,8 +83,10 @@ export function updateSaleStatus(transactionId: string, newStatus: Sale['status'
         sale.transactionId === transactionId ? { ...sale, status: newStatus } : sale
       );
       window.localStorage.setItem(SALES_STORAGE_KEY, JSON.stringify(updatedSales));
+      return updatedSales;
     } catch (error) {
       console.error("Failed to update sale status in localStorage", error);
+      return getSales();
     }
 }
   

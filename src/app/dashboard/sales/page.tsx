@@ -1,10 +1,7 @@
 
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
-import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
-import { DateRange } from "react-day-picker";
+import { useState, useMemo } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -32,39 +29,15 @@ import {
     DollarSign,
     Calendar as CalendarIcon,
 } from "lucide-react";
-import { getSales, updateSaleStatus, checkSaleStatus, Sale } from "@/services/sales-service";
+import { updateSaleStatus, checkSaleStatus, Sale } from "@/services/sales-service";
 import { useToast } from "@/hooks/use-toast";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Calendar } from "@/components/ui/calendar";
-import { cn } from "@/lib/utils";
+import { useGlobalFilter } from "@/contexts/global-filter-context";
 
 
 export default function SalesPage() {
-  const [sales, setSales] = useState<Sale[]>([]);
   const [loadingStates, setLoadingStates] = useState<Record<string, boolean>>({});
-  const [date, setDate] = useState<DateRange | undefined>();
   const { toast } = useToast();
-
-  useEffect(() => {
-    setSales(getSales());
-  }, []);
-  
-  const filteredSales = useMemo(() => {
-    if (!date?.from) {
-      return sales; // Return all sales if no start date is selected
-    }
-    const fromDate = date.from;
-    const toDate = date.to ? date.to : fromDate; // If no end date, use start date
-
-    // Set time to beginning and end of day for accurate filtering
-    fromDate.setHours(0, 0, 0, 0);
-    toDate.setHours(23, 59, 59, 999);
-
-    return sales.filter(sale => {
-      const saleDate = new Date(sale.date);
-      return saleDate >= fromDate && saleDate <= toDate;
-    });
-  }, [sales, date]);
+  const { filteredSales, setSales } = useGlobalFilter();
 
   const salesMetrics = useMemo(() => {
     const totalSales = filteredSales.length;
@@ -97,12 +70,8 @@ export default function SalesPage() {
     try {
       const result = await checkSaleStatus(transactionId);
       if (result && result.status) {
-        updateSaleStatus(transactionId, result.status as Sale['status']);
-        setSales(currentSales => 
-            currentSales.map(sale => 
-                sale.transactionId === transactionId ? { ...sale, status: result.status as Sale['status'] } : sale
-            )
-        );
+        const updatedSales = updateSaleStatus(transactionId, result.status as Sale['status']);
+        setSales(updatedSales);
         toast({
             description: `Status da transação atualizado para: ${result.status}`,
         });
@@ -125,45 +94,6 @@ export default function SalesPage() {
 
   return (
     <div className="space-y-6">
-        <div className="flex justify-start">
-            <Popover>
-                <PopoverTrigger asChild>
-                <Button
-                    id="date"
-                    variant={"outline"}
-                    className={cn(
-                    "w-[300px] justify-start text-left font-normal",
-                    !date && "text-muted-foreground"
-                    )}
-                >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {date?.from ? (
-                    date.to ? (
-                        <>
-                        {format(date.from, "LLL dd, y", { locale: ptBR })} -{" "}
-                        {format(date.to, "LLL dd, y", { locale: ptBR })}
-                        </>
-                    ) : (
-                        format(date.from, "LLL dd, y", { locale: ptBR })
-                    )
-                    ) : (
-                    <span>Escolha um período</span>
-                    )}
-                </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                <Calendar
-                    initialFocus
-                    mode="range"
-                    defaultMonth={date?.from}
-                    selected={date}
-                    onSelect={setDate}
-                    numberOfMonths={2}
-                    locale={ptBR}
-                />
-                </PopoverContent>
-            </Popover>
-        </div>
        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">

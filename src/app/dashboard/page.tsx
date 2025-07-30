@@ -1,22 +1,18 @@
+
 "use client";
 
+import { useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { BarChart, DollarSign, Users, ShoppingCart, Activity } from "lucide-react";
+import { BarChart, DollarSign, Users, ShoppingCart, Percent } from "lucide-react";
 import {
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart";
 import { Bar, BarChart as RechartsBarChart, XAxis, YAxis } from "recharts";
-
-const chartData = [
-  { month: "Jan", revenue: 1860 },
-  { month: "Fev", revenue: 3050 },
-  { month: "Mar", revenue: 2370 },
-  { month: "Abr", revenue: 730 },
-  { month: "Mai", revenue: 2090 },
-  { month: "Jun", revenue: 2140 },
-];
+import { useGlobalFilter } from "@/contexts/global-filter-context";
+import { format, eachDayOfInterval, subDays } from "date-fns";
+import { ptBR } from "date-fns/locale";
 
 const chartConfig = {
   revenue: {
@@ -26,30 +22,81 @@ const chartConfig = {
 };
 
 export default function DashboardPage() {
+  const { filteredSales, dateRange } = useGlobalFilter();
+
+  const { metrics, chartData } = useMemo(() => {
+    const totalOrders = filteredSales.length;
+    const approvedSales = filteredSales.filter(s => s.status === "Aprovado");
+    const approvedOrders = approvedSales.length;
+
+    const approvedRevenue = approvedSales.reduce((acc, sale) => {
+        return acc + parseFloat(sale.amount.replace(/[^0-9,-]+/g, "").replace(",", "."));
+    }, 0);
+
+    const approvalRate = totalOrders > 0 ? ((approvedOrders / totalOrders) * 100) : 0;
+
+    const uniqueCustomers = new Set(approvedSales.map(s => s.email)).size;
+
+    // Chart Data Calculation
+    const start = dateRange.from || subDays(new Date(), 6);
+    const end = dateRange.to || new Date();
+    const intervalDays = eachDayOfInterval({ start, end });
+
+    const salesByDay = filteredSales.reduce<Record<string, number>>((acc, sale) => {
+      const day = format(new Date(sale.date), 'yyyy-MM-dd');
+      const saleValue = parseFloat(sale.amount.replace(/[^0-9,-]+/g, "").replace(",", "."));
+      if (!acc[day]) {
+        acc[day] = 0;
+      }
+      acc[day] += saleValue;
+      return acc;
+    }, {});
+    
+    const generatedChartData = intervalDays.map(day => {
+        const formattedDay = format(day, 'yyyy-MM-dd');
+        const dayKey = format(day, 'dd/MM');
+        return {
+            date: dayKey,
+            revenue: salesByDay[formattedDay] || 0,
+        }
+    });
+
+    return {
+      metrics: {
+        approvedRevenue: approvedRevenue.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
+        approvedOrders,
+        uniqueCustomers,
+        approvalRate: approvalRate.toFixed(1) + '%',
+      },
+      chartData: generatedChartData,
+    };
+  }, [filteredSales, dateRange]);
+
+
   return (
     <div className="space-y-6">
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Receita Total</CardTitle>
+            <CardTitle className="text-sm font-medium">Receita Aprovada</CardTitle>
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">R$ 45.231,89</div>
+            <div className="text-2xl font-bold">{metrics.approvedRevenue}</div>
             <p className="text-xs text-muted-foreground">
-              +20.1% em relação ao mês passado
+              Receita total de vendas aprovadas
             </p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Vendas</CardTitle>
+            <CardTitle className="text-sm font-medium">Vendas Aprovadas</CardTitle>
             <ShoppingCart className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">+2350</div>
+            <div className="text-2xl font-bold">+{metrics.approvedOrders}</div>
             <p className="text-xs text-muted-foreground">
-              +180.1% em relação ao mês passado
+              Vendas aprovadas no período
             </p>
           </CardContent>
         </Card>
@@ -59,21 +106,21 @@ export default function DashboardPage() {
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">+12,234</div>
+            <div className="text-2xl font-bold">+{metrics.uniqueCustomers}</div>
             <p className="text-xs text-muted-foreground">
-              +19% em relação ao mês passado
+              Clientes únicos no período
             </p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Taxa de Conversão</CardTitle>
-            <Activity className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium">Taxa de Aprovação</CardTitle>
+            <Percent className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">+5.73%</div>
+            <div className="text-2xl font-bold">{metrics.approvalRate}</div>
             <p className="text-xs text-muted-foreground">
-              +2.1% em relação ao mês passado
+              Do total de pedidos iniciados
             </p>
           </CardContent>
         </Card>
@@ -83,7 +130,7 @@ export default function DashboardPage() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <BarChart className="h-5 w-5" />
-            Receita Mensal
+            Receita por Dia
           </CardTitle>
         </CardHeader>
         <CardContent className="pl-2">
@@ -99,21 +146,21 @@ export default function DashboardPage() {
               }}
             >
               <XAxis
-                dataKey="month"
+                dataKey="date"
                 tickLine={false}
                 axisLine={false}
                 tickMargin={8}
-                tickFormatter={(value) => value.slice(0, 3)}
               />
               <YAxis
                 tickFormatter={(value) => `R$ ${value / 1000}k`}
                 tickLine={false}
                 axisLine={false}
                 tickMargin={8}
+                width={80}
               />
               <ChartTooltip
                 cursor={false}
-                content={<ChartTooltipContent indicator="dot" />}
+                content={<ChartTooltipContent indicator="dot" formatter={(value, name, props) => `${props.payload.date}: ${Number(value).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}`}/>}
               />
               <Bar dataKey="revenue" fill="var(--color-revenue)" radius={4} />
             </RechartsBarChart>
