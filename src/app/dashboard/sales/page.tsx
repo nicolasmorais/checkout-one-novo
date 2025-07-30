@@ -239,7 +239,7 @@ export default function SalesPage() {
                         <p className="text-sm font-medium leading-none">
                           {sale.name}
                         </p>
-                        <p className="text-sm text-muted-foreground md:hidden">
+                        <p className="text-sm text-muted-foreground">
                           {sale.email}
                         </p>
                       </div>
