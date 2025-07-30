@@ -29,11 +29,23 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { Package, Copy, Link as LinkIcon, Loader2 } from "lucide-react";
-import { Product, getProducts, saveProduct } from "@/services/products-service";
+import { Package, Copy, Link as LinkIcon, Loader2, Trash2, Edit } from "lucide-react";
+import { Product, getProducts, saveProduct, deleteProduct, updateProduct } from "@/services/products-service";
+import EditProductDialog from "@/components/dashboard/edit-product-dialog";
+
 
 const formSchema = z.object({
   name: z.string().min(3, "O nome deve ter pelo menos 3 caracteres."),
@@ -46,6 +58,9 @@ type ProductFormData = z.infer<typeof formSchema>;
 export default function ProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isDeleteAlertOpen, setIsDeleteAlertOpen] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -95,122 +110,219 @@ export default function ProductsPage() {
     });
   };
 
-  return (
-    <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle>Adicionar Novo Produto</CardTitle>
-          <CardDescription>
-            Preencha os dados abaixo para cadastrar um novo produto digital.
-          </CardDescription>
-        </CardHeader>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleAddProduct)}>
-            <CardContent className="space-y-4">
-              <div className="grid md:grid-cols-3 gap-4">
-                <FormField
-                  control={form.control}
-                  name="name"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Nome do Produto</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Ex: Ebook de Receitas" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                 <FormField
-                  control={form.control}
-                  name="description"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Descrição (Subtítulo)</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Ex: Acesso Vitalício" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="value"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Valor (R$)</FormLabel>
-                      <FormControl>
-                        <Input type="number" step="0.01" placeholder="Ex: 29.90" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-            </CardContent>
-            <CardFooter>
-              <Button type="submit" disabled={isLoading}>
-                {isLoading ? <Loader2 className="animate-spin" /> : <Package className="mr-2" />}
-                Adicionar Produto
-              </Button>
-            </CardFooter>
-          </form>
-        </Form>
-      </Card>
+  const handleOpenEditModal = (product: Product) => {
+    setSelectedProduct(product);
+    setIsEditModalOpen(true);
+  };
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Meus Produtos</CardTitle>
-          <CardDescription>
-            A lista dos seus produtos cadastrados. Use o link para o checkout.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Nome do Produto</TableHead>
-                <TableHead>Descrição</TableHead>
-                <TableHead className="text-right">Valor</TableHead>
-                <TableHead className="text-right">Ações</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {products.length > 0 ? (
-                products.map((product) => (
-                  <TableRow key={product.id}>
-                    <TableCell className="font-medium">{product.name}</TableCell>
-                    <TableCell>{product.description}</TableCell>
-                    <TableCell className="text-right">
-                      {product.value.toLocaleString("pt-BR", {
-                        style: "currency",
-                        currency: "BRL",
-                      })}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleCopyLink(product.slug)}
-                      >
-                        <LinkIcon className="mr-2 h-4 w-4" />
-                        Copiar Link
-                      </Button>
+  const handleOpenDeleteAlert = (product: Product) => {
+    setSelectedProduct(product);
+    setIsDeleteAlertOpen(true);
+  };
+
+  const handleUpdateProduct = (updatedData: Product) => {
+    try {
+      updateProduct(updatedData);
+      setProducts(currentProducts =>
+        currentProducts.map(p => (p.id === updatedData.id ? updatedData : p))
+      );
+      toast({
+        title: "Produto Atualizado!",
+        description: `O produto "${updatedData.name}" foi atualizado.`,
+      });
+      setIsEditModalOpen(false);
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Erro ao Atualizar",
+        description: "Não foi possível atualizar o produto.",
+      });
+    }
+  };
+
+  const handleDeleteProduct = () => {
+    if (!selectedProduct) return;
+    try {
+        deleteProduct(selectedProduct.id);
+        setProducts(currentProducts =>
+            currentProducts.filter(p => p.id !== selectedProduct.id)
+        );
+        toast({
+            title: "Produto Excluído!",
+            description: `O produto "${selectedProduct.name}" foi excluído.`,
+        });
+    } catch (error) {
+        toast({
+            variant: "destructive",
+            title: "Erro ao Excluir",
+            description: "Não foi possível excluir o produto.",
+        });
+    } finally {
+        setIsDeleteAlertOpen(false);
+        setSelectedProduct(null);
+    }
+  };
+
+
+  return (
+    <>
+      <div className="space-y-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Adicionar Novo Produto</CardTitle>
+            <CardDescription>
+              Preencha os dados abaixo para cadastrar um novo produto digital.
+            </CardDescription>
+          </CardHeader>
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(handleAddProduct)}>
+              <CardContent className="space-y-4">
+                <div className="grid md:grid-cols-3 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="name"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Nome do Produto</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Ex: Ebook de Receitas" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="description"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Descrição (Subtítulo)</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Ex: Acesso Vitalício" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="value"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Valor (R$)</FormLabel>
+                        <FormControl>
+                          <Input type="number" step="0.01" placeholder="Ex: 29.90" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </CardContent>
+              <CardFooter>
+                <Button type="submit" disabled={isLoading}>
+                  {isLoading ? <Loader2 className="animate-spin" /> : <Package className="mr-2" />}
+                  Adicionar Produto
+                </Button>
+              </CardFooter>
+            </form>
+          </Form>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Meus Produtos</CardTitle>
+            <CardDescription>
+              A lista dos seus produtos cadastrados. Use o link para o checkout.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Nome do Produto</TableHead>
+                  <TableHead>Descrição</TableHead>
+                  <TableHead>Valor</TableHead>
+                  <TableHead className="text-right">Ações</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {products.length > 0 ? (
+                  products.map((product) => (
+                    <TableRow key={product.id}>
+                      <TableCell className="font-medium">{product.name}</TableCell>
+                      <TableCell>{product.description}</TableCell>
+                      <TableCell>
+                        {product.value.toLocaleString("pt-BR", {
+                          style: "currency",
+                          currency: "BRL",
+                        })}
+                      </TableCell>
+                      <TableCell className="text-right space-x-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleCopyLink(product.slug)}
+                        >
+                          <LinkIcon className="mr-2 h-4 w-4" />
+                          Link
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          onClick={() => handleOpenEditModal(product)}
+                        >
+                          <Edit className="h-4 w-4" />
+                          <span className="sr-only">Editar</span>
+                        </Button>
+                        <Button
+                          variant="destructive"
+                          size="icon"
+                          onClick={() => handleOpenDeleteAlert(product)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                          <span className="sr-only">Excluir</span>
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={5} className="text-center">
+                      Nenhum produto cadastrado ainda.
                     </TableCell>
                   </TableRow>
-                ))
-              ) : (
-                <TableRow>
-                  <TableCell colSpan={4} className="text-center">
-                    Nenhum produto cadastrado ainda.
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
-    </div>
+                )}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+      </div>
+      {isEditModalOpen && selectedProduct && (
+        <EditProductDialog
+          product={selectedProduct}
+          isOpen={isEditModalOpen}
+          onOpenChange={setIsEditModalOpen}
+          onSave={handleUpdateProduct}
+        />
+      )}
+       <AlertDialog open={isDeleteAlertOpen} onOpenChange={setIsDeleteAlertOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Você tem certeza absoluta?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Essa ação não pode ser desfeita. Isso excluirá permanentemente o produto
+              e tornará seu link de checkout inválido.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteProduct}>
+              Sim, excluir produto
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 }

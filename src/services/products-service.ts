@@ -70,3 +70,47 @@ export function getProductBySlug(slug: string): Product | undefined {
     const products = getProducts();
     return products.find(p => p.slug === slug);
 }
+
+/**
+ * Updates an existing product in localStorage.
+ * @param {Product} updatedProduct The product object with updated data.
+ * @returns {Product} The updated product object.
+ */
+export function updateProduct(updatedProduct: Product): Product {
+    if (typeof window === "undefined") {
+        throw new Error("Cannot update product on the server.");
+    }
+    try {
+        const existingProducts = getProducts();
+        const productIndex = existingProducts.findIndex(p => p.id === updatedProduct.id);
+
+        if (productIndex === -1) {
+            throw new Error("Product not found.");
+        }
+
+        existingProducts[productIndex] = updatedProduct;
+        window.localStorage.setItem(PRODUCTS_STORAGE_KEY, JSON.stringify(existingProducts));
+        return updatedProduct;
+    } catch (error) {
+        console.error("Failed to update product in localStorage", error);
+        throw error;
+    }
+}
+
+/**
+ * Deletes a product from localStorage by its ID.
+ * @param {string} productId The ID of the product to delete.
+ */
+export function deleteProduct(productId: string): void {
+    if (typeof window === "undefined") {
+        throw new Error("Cannot delete product on the server.");
+    }
+    try {
+        const existingProducts = getProducts();
+        const updatedProducts = existingProducts.filter(p => p.id !== productId);
+        window.localStorage.setItem(PRODUCTS_STORAGE_KEY, JSON.stringify(updatedProducts));
+    } catch (error) {
+        console.error("Failed to delete product from localStorage", error);
+        throw error;
+    }
+}
