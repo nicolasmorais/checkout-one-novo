@@ -13,7 +13,7 @@ import {
   SidebarTrigger,
   SidebarContent,
 } from "@/components/ui/sidebar";
-import { Home, BarChart, ShoppingCart, Users, Settings, LogOut, User, Bell, Building } from "lucide-react";
+import { Home, BarChart, ShoppingCart, Users, Settings, LogOut, User, Bell, Building, Paintbrush } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -28,6 +28,7 @@ const settingsMenuItems = [
     { path: "#", icon: User, label: "Perfil" },
     { path: "#", icon: Bell, label: "Notificações" },
     { path: "#", icon: Building, label: "Organizações" },
+    { path: "#", icon: Paintbrush, label: "Personalização" },
     { path: "#", icon: Settings, label: "Configurações" },
     { path: "/", icon: LogOut, label: "Sair" },
 ]
@@ -71,7 +72,7 @@ export default function DashboardLayout({
                 <SidebarGroupLabel>CONFIGURAÇÕES</SidebarGroupLabel>
                 <SidebarMenu>
                      {settingsMenuItems.map(item => (
-                        <SidebarMenuItem key={item.path}>
+                        <SidebarMenuItem key={item.label}>
                             <SidebarMenuButton asChild isActive={isActive(item.path)}>
                                 <Link href={item.path === '/' ? '/' : '#'}>
                                     <item.icon />
