@@ -28,7 +28,7 @@ const settingsMenuItems = [
     { path: "#", icon: User, label: "Perfil" },
     { path: "#", icon: Bell, label: "Notificações" },
     { path: "#", icon: Building, label: "Organizações" },
-    { path: "#", icon: Paintbrush, label: "Personalização" },
+    { path: "/dashboard/personalizacao", icon: Paintbrush, label: "Personalização" },
     { path: "#", icon: Settings, label: "Configurações" },
     { path: "/", icon: LogOut, label: "Sair" },
 ]
@@ -74,7 +74,7 @@ export default function DashboardLayout({
                      {settingsMenuItems.map(item => (
                         <SidebarMenuItem key={item.label}>
                             <SidebarMenuButton asChild isActive={isActive(item.path)}>
-                                <Link href={item.path === '/' ? '/' : '#'}>
+                                <Link href={item.path === '/' ? '/' : item.path}>
                                     <item.icon />
                                     {item.label}
                                 </Link>
