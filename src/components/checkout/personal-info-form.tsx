@@ -24,6 +24,8 @@ import Image from "next/image";
 import { ShieldCheck, Star, Loader2 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Product } from "@/services/products-service";
+import { Review, getReviews } from "@/services/reviews-service";
+import { useState, useEffect } from "react";
 
 const formSchema = z.object({
   name: z.string().min(2, {
@@ -42,28 +44,13 @@ interface PersonalInfoFormProps {
   isLoading: boolean;
 }
 
-const reviews = [
-  {
-    name: "Maria S.",
-    avatar: "https://placehold.co/40x40.png",
-    rating: 5,
-    text: "“Transformou meu negócio! Os criativos que aprendi a fazer aqui geraram um ROI de 5x em menos de 30 dias. Essencial para quem quer escalar.”",
-  },
-  {
-    name: "João P.",
-    avatar: "https://placehold.co/40x40.png",
-    rating: 5,
-    text: "“Didática incrível e conteúdo direto ao ponto. Consegui aplicar as técnicas no mesmo dia e já vi um aumento significativo no engajamento.”",
-  },
-  {
-    name: "Ana L.",
-    avatar: "https://placehold.co/40x40.png",
-    rating: 5,
-    text: "“O melhor investimento que fiz para minha loja. As estratégias de criativos são ouro puro e o suporte do Mago é fora de série.”",
-  },
-];
-
 export default function PersonalInfoForm({ product, onSubmit, isLoading }: PersonalInfoFormProps) {
+  const [reviews, setReviews] = useState<Review[]>([]);
+
+  useEffect(() => {
+    setReviews(getReviews());
+  }, []);
+
   const form = useForm<UserData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -150,35 +137,39 @@ export default function PersonalInfoForm({ product, onSubmit, isLoading }: Perso
         </Form>
       </Card>
 
-      <Card className="w-full max-w-md shadow-lg mt-6">
-        <CardHeader>
-          <CardTitle>O que nossos alunos estão dizendo:</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          {reviews.map((review, index) => (
-            <div key={index} className="flex items-start gap-4">
-              <Avatar>
-                <AvatarImage src={review.avatar} alt={review.name} data-ai-hint="person avatar" />
-                <AvatarFallback>{review.name.charAt(0)}</AvatarFallback>
-              </Avatar>
-              <div className="flex-1">
-                <div className="flex items-center justify-between">
-                  <p className="font-semibold">{review.name}</p>
-                  <div className="flex items-center">
-                    {[...Array(review.rating)].map((_, i) => (
-                      <Star key={i} className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                    ))}
-                    {[...Array(5-review.rating)].map((_, i) => (
-                      <Star key={i} className="h-4 w-4 text-gray-300" />
-                    ))}
+      {reviews.length > 0 && (
+        <Card className="w-full max-w-md shadow-lg mt-6">
+          <CardHeader>
+            <CardTitle>O que nossos clientes estão dizendo:</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {reviews.map((review) => (
+              <div key={review.id} className="flex items-start gap-4">
+                <Avatar>
+                  <AvatarImage src={review.avatarUrl || `https://placehold.co/40x40.png?text=${review.name.charAt(0)}`} alt={review.name} data-ai-hint="person avatar" />
+                  <AvatarFallback>{review.name.charAt(0)}</AvatarFallback>
+                </Avatar>
+                <div className="flex-1">
+                  <div className="flex items-center justify-between">
+                    <p className="font-semibold">{review.name}</p>
+                    <div className="flex items-center">
+                      {[...Array(review.rating)].map((_, i) => (
+                        <Star key={i} className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                      ))}
+                      {[...Array(5 - review.rating)].map((_, i) => (
+                        <Star key={i} className="h-4 w-4 text-gray-300" />
+                      ))}
+                    </div>
                   </div>
+                  <p className="text-sm text-muted-foreground mt-1">{review.text}</p>
                 </div>
-                <p className="text-sm text-muted-foreground mt-1">{review.text}</p>
               </div>
-            </div>
-          ))}
-        </CardContent>
-      </Card>
+            ))}
+          </CardContent>
+        </Card>
+      )}
     </>
   );
 }
+
+    
