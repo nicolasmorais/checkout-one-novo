@@ -3,7 +3,8 @@
 
 import {
   Sidebar,
-  SidebarHeader,
+  SidebarGroup,
+  SidebarGroupLabel,
   SidebarMenu,
   SidebarMenuItem,
   SidebarMenuButton,
@@ -11,9 +12,8 @@ import {
   SidebarInset,
   SidebarTrigger,
   SidebarContent,
-  SidebarFooter,
 } from "@/components/ui/sidebar";
-import { Home, BarChart, ShoppingCart, Users, Settings, LogOut } from "lucide-react";
+import { Home, BarChart, ShoppingCart, Users, Settings, LogOut, User, Bell, Building } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -24,10 +24,13 @@ const menuItems = [
     { path: "/dashboard/users", icon: Users, label: "Usuários" },
 ];
 
-const bottomMenuItems = [
-    { path: "/dashboard/settings", icon: Settings, label: "Configurações" },
+const settingsMenuItems = [
+    { path: "#", icon: User, label: "Perfil" },
+    { path: "#", icon: Bell, label: "Notificações" },
+    { path: "#", icon: Building, label: "Organizações" },
+    { path: "#", icon: Settings, label: "Configurações" },
     { path: "/", icon: LogOut, label: "Sair" },
-];
+]
 
 export default function DashboardLayout({
   children,
@@ -41,49 +44,45 @@ export default function DashboardLayout({
   };
 
   const getPageTitle = () => {
-    const activeItem = menuItems.find(item => item.path === pathname);
+    const activeItem = menuItems.find(item => item.path === pathname) || settingsMenuItems.find(item => item.path === pathname);
     return activeItem ? activeItem.label : "Dashboard";
   }
 
   return (
     <SidebarProvider>
       <Sidebar>
-        <SidebarHeader>
-          <div className="flex items-center gap-2">
-            <div className="bg-primary rounded-md p-1.5 flex items-center justify-center">
-              <BarChart className="w-5 h-5 text-primary-foreground" />
-            </div>
-            <span className="font-semibold text-lg">Dashboard</span>
-          </div>
-        </SidebarHeader>
-        <SidebarContent>
-          <SidebarMenu>
-            {menuItems.map(item => (
-                <SidebarMenuItem key={item.path}>
-                    <SidebarMenuButton asChild isActive={isActive(item.path)}>
-                        <Link href={item.path}>
-                            <item.icon />
-                            {item.label}
-                        </Link>
-                    </SidebarMenuButton>
-                </SidebarMenuItem>
-            ))}
-          </SidebarMenu>
+        <SidebarContent className="p-2">
+            <SidebarGroup>
+                <SidebarGroupLabel>PRINCIPAL</SidebarGroupLabel>
+                <SidebarMenu>
+                    {menuItems.map(item => (
+                        <SidebarMenuItem key={item.path}>
+                            <SidebarMenuButton asChild isActive={isActive(item.path)}>
+                                <Link href={item.path}>
+                                    <item.icon />
+                                    {item.label}
+                                </Link>
+                            </SidebarMenuButton>
+                        </SidebarMenuItem>
+                    ))}
+                </SidebarMenu>
+            </SidebarGroup>
+            <SidebarGroup>
+                <SidebarGroupLabel>CONFIGURAÇÕES</SidebarGroupLabel>
+                <SidebarMenu>
+                     {settingsMenuItems.map(item => (
+                        <SidebarMenuItem key={item.path}>
+                            <SidebarMenuButton asChild isActive={isActive(item.path)}>
+                                <Link href={item.path === '/' ? '/' : '#'}>
+                                    <item.icon />
+                                    {item.label}
+                                </Link>
+                            </SidebarMenuButton>
+                        </SidebarMenuItem>
+                    ))}
+                </SidebarMenu>
+            </SidebarGroup>
         </SidebarContent>
-        <SidebarFooter>
-          <SidebarMenu>
-            {bottomMenuItems.map(item => (
-                <SidebarMenuItem key={item.path}>
-                    <SidebarMenuButton asChild isActive={isActive(item.path)}>
-                        <Link href={item.path === '/' ? '/' : '#'}>
-                            <item.icon />
-                            {item.label}
-                        </Link>
-                    </SidebarMenuButton>
-                </SidebarMenuItem>
-            ))}
-          </SidebarMenu>
-        </SidebarFooter>
       </Sidebar>
       <SidebarInset>
         <div className="p-4 md:p-6">
