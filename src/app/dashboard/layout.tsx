@@ -16,6 +16,7 @@ import {
 import { Home, BarChart, ShoppingCart, Users, Settings, LogOut, User, Bell, Building, Paintbrush } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import Logo from "@/components/ui/logo";
 
 const menuItems = [
     { path: "/dashboard", icon: Home, label: "Visão Geral" },
@@ -53,6 +54,9 @@ export default function DashboardLayout({
     <SidebarProvider>
       <Sidebar>
         <SidebarContent className="p-2">
+            <div className="p-2">
+              <Logo />
+            </div>
             <SidebarGroup>
                 <SidebarGroupLabel>PRINCIPAL</SidebarGroupLabel>
                 <SidebarMenu>
