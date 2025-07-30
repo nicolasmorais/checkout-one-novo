@@ -109,7 +109,7 @@ export default function ProductsPage() {
   };
 
   const handleCopyLink = (slug: string) => {
-    const url = `${window.location.origin}/?product=${slug}`;
+    const url = `${window.location.origin}/${slug}`;
     navigator.clipboard.writeText(url);
     toast({
       description: "Link do checkout copiado para a área de transferência!",
@@ -360,3 +360,5 @@ export default function ProductsPage() {
     </>
   );
 }
+
+    
