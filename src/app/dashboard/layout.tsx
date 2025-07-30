@@ -13,7 +13,7 @@ import {
   SidebarTrigger,
   SidebarContent,
 } from "@/components/ui/sidebar";
-import { Home, BarChart, ShoppingCart, Users, Settings, LogOut, Paintbrush } from "lucide-react";
+import { Home, BarChart, ShoppingCart, Settings, LogOut, Paintbrush, Package } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import Logo from "@/components/ui/logo";
@@ -21,6 +21,7 @@ import Logo from "@/components/ui/logo";
 const menuItems = [
     { path: "/dashboard", icon: Home, label: "Visão Geral" },
     { path: "/dashboard/sales", icon: ShoppingCart, label: "Vendas" },
+    { path: "/dashboard/products", icon: Package, label: "Produtos" },
     { path: "/dashboard/analytics", icon: BarChart, label: "Análises" },
 ];
 
@@ -42,7 +43,7 @@ export default function DashboardLayout({
   };
 
   const getPageTitle = () => {
-    const activeItem = menuItems.find(item => item.path === pathname) || settingsMenuItems.find(item => item.path === pathname);
+    const activeItem = menuItems.find(item => item.path === pathname) || settingsMenuItems.find(item => item.path === pathname) || { label: "Produtos", path: "/dashboard/products"};
     return activeItem ? activeItem.label : "Dashboard";
   }
 

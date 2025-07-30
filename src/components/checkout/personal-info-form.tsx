@@ -23,6 +23,7 @@ import {
 import Image from "next/image";
 import { ShieldCheck, Star, Loader2 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Product } from "@/services/products-service";
 
 const formSchema = z.object({
   name: z.string().min(2, {
@@ -36,6 +37,7 @@ const formSchema = z.object({
 type UserData = z.infer<typeof formSchema>;
 
 interface PersonalInfoFormProps {
+  product: Omit<Product, 'id'>;
   onSubmit: (data: UserData) => void;
   isLoading: boolean;
 }
@@ -61,7 +63,7 @@ const reviews = [
   },
 ];
 
-export default function PersonalInfoForm({ onSubmit, isLoading }: PersonalInfoFormProps) {
+export default function PersonalInfoForm({ product, onSubmit, isLoading }: PersonalInfoFormProps) {
   const form = useForm<UserData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -89,10 +91,12 @@ export default function PersonalInfoForm({ onSubmit, isLoading }: PersonalInfoFo
             />
             <div className="flex-1">
               <h2 className="font-bold">Mago do CTR</h2>
-              <p className="text-sm text-muted-foreground">3 Pilares Dos Criativos</p>
+              <p className="text-sm text-muted-foreground">{product.name}</p>
               <div className="mt-2 flex items-baseline">
                 <p className="text-sm text-muted-foreground mr-2">Total</p>
-                <p className="text-2xl font-bold text-primary">R$ 9,90</p>
+                <p className="text-2xl font-bold text-primary">
+                  {product.value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                </p>
                 <p className="text-sm text-muted-foreground ml-1">à vista</p>
               </div>
             </div>

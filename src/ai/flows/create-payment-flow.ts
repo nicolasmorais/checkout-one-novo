@@ -14,6 +14,7 @@ import { z } from 'zod';
 const CreatePaymentInputSchema = z.object({
   name: z.string().describe('The name of the user.'),
   email: z.string().email().describe('The email of the user.'),
+  valueInCents: z.number().int().positive().describe('The value of the product in cents.'),
 });
 export type CreatePaymentInput = z.infer<typeof CreatePaymentInputSchema>;
 
@@ -44,7 +45,7 @@ const createPaymentFlow = ai.defineFlow(
     outputSchema: CreatePaymentOutputSchema,
   },
   async (input) => {
-    console.log(`Creating payment for ${input.name} (${input.email})`);
+    console.log(`Creating payment for ${input.name} (${input.email}) for ${input.valueInCents} cents.`);
     
     const PUSHINPAY_API_URL = "https://api.pushinpay.com.br/api/pix/cashIn";
     const API_TOKEN = process.env.PUSHINPAY_API_TOKEN;
@@ -52,8 +53,6 @@ const createPaymentFlow = ai.defineFlow(
     if (!API_TOKEN) {
       throw new Error("Push In Pay API token is not configured.");
     }
-    
-    const productValueInCents = 990; // R$ 9,90
 
     try {
       const response = await fetch(PUSHINPAY_API_URL, {
@@ -64,7 +63,7 @@ const createPaymentFlow = ai.defineFlow(
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          value: productValueInCents,
+          value: input.valueInCents,
           webhook_url: "https://seudominio.com/webhook-pix", // Example webhook
           "split_rules": []
         }),
