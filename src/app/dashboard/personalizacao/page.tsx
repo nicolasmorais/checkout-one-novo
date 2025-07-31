@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardFooter, CardDescription }
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { getReviews, saveReview, updateReview, deleteReview, Review } from "@/services/reviews-service";
 import { Textarea } from "@/components/ui/textarea";
@@ -74,6 +75,8 @@ function getContrastColor(hex: string): string {
 }
 
 const PRIMARY_COLOR_STORAGE_KEY = "theme_primary_color_hex";
+const ALERT_ENABLED_KEY = "checkout_alert_enabled";
+const ALERT_MESSAGE_KEY = "checkout_alert_message";
 
 const reviewSchema = z.object({
   name: z.string().min(2, "O nome é obrigatório."),
@@ -90,6 +93,11 @@ export default function PersonalizacaoPage() {
   const [isReviewFormOpen, setIsReviewFormOpen] = useState(false);
   const [isDeleteAlertOpen, setIsDeleteAlertOpen] = useState(false);
   const [selectedReview, setSelectedReview] = useState<Review | null>(null);
+  
+  // State for the new alert settings
+  const [showAlert, setShowAlert] = useState(false);
+  const [alertMessage, setAlertMessage] = useState("⚠️ Atenção: O não pagamento do Pix pode gerar uma negativação no Serasa e SPC.");
+
   const { toast } = useToast();
 
   const reviewForm = useForm<ReviewFormData>({
@@ -98,9 +106,19 @@ export default function PersonalizacaoPage() {
   });
 
   useEffect(() => {
+    // Load theme color
     const savedColor = localStorage.getItem(PRIMARY_COLOR_STORAGE_KEY);
     if (savedColor) setPrimaryColor(savedColor);
+
+    // Load reviews
     setReviews(getReviews());
+    
+    // Load checkout alert settings
+    const savedShowAlert = localStorage.getItem(ALERT_ENABLED_KEY);
+    const savedAlertMessage = localStorage.getItem(ALERT_MESSAGE_KEY);
+    setShowAlert(savedShowAlert === 'true');
+    if (savedAlertMessage) setAlertMessage(savedAlertMessage);
+
   }, []);
 
   const previewStyle: React.CSSProperties = {
@@ -119,6 +137,13 @@ export default function PersonalizacaoPage() {
     toast({ title: "Cor Primária Atualizada!", description: "A nova cor foi aplicada em todo o site." });
     window.dispatchEvent(new Event('themeChanged'));
   };
+
+  const handleSaveCheckoutSettings = () => {
+    localStorage.setItem(ALERT_ENABLED_KEY, String(showAlert));
+    localStorage.setItem(ALERT_MESSAGE_KEY, alertMessage);
+    toast({ title: "Configurações do Checkout Salvas!", description: "Suas alterações foram aplicadas." });
+  };
+
 
   const handleOpenReviewForm = (review: Review | null) => {
     setSelectedReview(review);
@@ -186,7 +211,40 @@ export default function PersonalizacaoPage() {
           </div>
         </CardContent>
         <CardFooter className="border-t px-6 py-4">
-          <Button onClick={handleApplyTheme}>Aplicar e Salvar</Button>
+          <Button onClick={handleApplyTheme}>Aplicar Cor</Button>
+        </CardFooter>
+      </Card>
+
+      <Card>
+        <CardHeader>
+            <CardTitle>Configurações do Checkout</CardTitle>
+            <CardDescription>Ajuste as mensagens e alertas exibidos na página de pagamento.</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+            <div className="flex items-center justify-between rounded-lg border p-4">
+                <div>
+                    <Label htmlFor="alert-switch" className="font-medium">Exibir alerta de inadimplência</Label>
+                    <p className="text-sm text-muted-foreground">Mostra um aviso na tela do QR Code.</p>
+                </div>
+                <Switch
+                    id="alert-switch"
+                    checked={showAlert}
+                    onCheckedChange={setShowAlert}
+                />
+            </div>
+            <div className="space-y-2">
+                <Label htmlFor="alert-message">Mensagem de alerta Pix</Label>
+                <Textarea
+                    id="alert-message"
+                    value={alertMessage}
+                    onChange={(e) => setAlertMessage(e.target.value)}
+                    placeholder="Digite a mensagem de alerta..."
+                    disabled={!showAlert}
+                />
+            </div>
+        </CardContent>
+        <CardFooter className="border-t px-6 py-4">
+            <Button onClick={handleSaveCheckoutSettings}>Salvar Configurações do Checkout</Button>
         </CardFooter>
       </Card>
 
@@ -281,5 +339,3 @@ export default function PersonalizacaoPage() {
     </div>
   );
 }
-
-    
