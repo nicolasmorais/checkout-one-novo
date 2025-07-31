@@ -11,7 +11,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Copy, Check, TriangleAlert } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
@@ -85,6 +85,9 @@ export default function QrCodeDisplay({ userData, paymentData, onScanned }: QrCo
               height={256}
               data-ai-hint="qr code"
             />
+          </div>
+           <div className="w-full text-center font-mono text-sm break-all p-3 mb-2 bg-muted rounded-md border border-dashed">
+            {paymentData.pixCode}
           </div>
           <Button onClick={handleCopy} className="w-full">
             {isCopied ? <Check className="mr-2 h-4 w-4 text-green-500" /> : <Copy className="mr-2 h-4 w-4" />}
