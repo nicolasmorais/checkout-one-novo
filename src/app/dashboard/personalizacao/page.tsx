@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useForm as useFooterForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter, CardDescription } from "@/components/ui/card";
@@ -12,6 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { getReviews, saveReview, updateReview, deleteReview, Review } from "@/services/reviews-service";
+import { getFooterData, saveFooterData, FooterData } from "@/services/footer-service";
 import { Textarea } from "@/components/ui/textarea";
 import {
   AlertDialog,
@@ -93,8 +94,6 @@ export default function PersonalizacaoPage() {
   const [isReviewFormOpen, setIsReviewFormOpen] = useState(false);
   const [isDeleteAlertOpen, setIsDeleteAlertOpen] = useState(false);
   const [selectedReview, setSelectedReview] = useState<Review | null>(null);
-  
-  // State for the new alert settings
   const [showAlert, setShowAlert] = useState(false);
   const [alertMessage, setAlertMessage] = useState("⚠️ Atenção: O não pagamento do Pix pode gerar uma negativação no Serasa e SPC.");
 
@@ -103,6 +102,10 @@ export default function PersonalizacaoPage() {
   const reviewForm = useForm<ReviewFormData>({
     resolver: zodResolver(reviewSchema),
     defaultValues: { name: "", text: "", rating: 5, avatarUrl: "" },
+  });
+
+  const footerForm = useFooterForm<FooterData>({
+      defaultValues: getFooterData()
   });
 
   useEffect(() => {
@@ -119,7 +122,10 @@ export default function PersonalizacaoPage() {
     setShowAlert(savedShowAlert === 'true');
     if (savedAlertMessage) setAlertMessage(savedAlertMessage);
 
-  }, []);
+    // Load footer data
+    footerForm.reset(getFooterData());
+
+  }, [footerForm]);
 
   const previewStyle: React.CSSProperties = {
     backgroundColor: primaryColor,
@@ -142,6 +148,12 @@ export default function PersonalizacaoPage() {
     localStorage.setItem(ALERT_ENABLED_KEY, String(showAlert));
     localStorage.setItem(ALERT_MESSAGE_KEY, alertMessage);
     toast({ title: "Configurações do Checkout Salvas!", description: "Suas alterações foram aplicadas." });
+  };
+  
+  const handleSaveFooter = (data: FooterData) => {
+    saveFooterData(data);
+    window.dispatchEvent(new Event('footerChanged'));
+    toast({ title: "Rodapé Atualizado!", description: "As informações do rodapé foram salvas." });
   };
 
 
@@ -246,6 +258,62 @@ export default function PersonalizacaoPage() {
         <CardFooter className="border-t px-6 py-4">
             <Button onClick={handleSaveCheckoutSettings}>Salvar Configurações do Checkout</Button>
         </CardFooter>
+      </Card>
+
+       <Card>
+        <CardHeader>
+            <CardTitle>Personalizar Rodapé</CardTitle>
+            <CardDescription>Edite as informações exibidas no rodapé da página de checkout.</CardDescription>
+        </CardHeader>
+        <form onSubmit={footerForm.handleSubmit(handleSaveFooter)}>
+            <CardContent className="space-y-4">
+                 <div className="grid md:grid-cols-2 gap-4">
+                    <div>
+                        <Label htmlFor="securePurchaseTitle">Título 1 (Segurança)</Label>
+                        <Input id="securePurchaseTitle" {...footerForm.register("securePurchaseTitle")} />
+                    </div>
+                    <div>
+                        <Label htmlFor="protectedDataTitle">Título 2 (Proteção)</Label>
+                        <Input id="protectedDataTitle" {...footerForm.register("protectedDataTitle")} />
+                    </div>
+                 </div>
+                 <div>
+                    <Label htmlFor="companyName">Nome da Empresa</Label>
+                    <Input id="companyName" {...footerForm.register("companyName")} />
+                 </div>
+                 <div className="grid md:grid-cols-2 gap-4">
+                    <div>
+                        <Label htmlFor="cnpj">CNPJ</Label>
+                        <Input id="cnpj" {...footerForm.register("cnpj")} />
+                    </div>
+                    <div>
+                        <Label htmlFor="contactEmail">E-mail de Contato</Label>
+                        <Input id="contactEmail" type="email" {...footerForm.register("contactEmail")} />
+                    </div>
+                 </div>
+                 <div>
+                    <Label htmlFor="address">Endereço</Label>
+                    <Input id="address" {...footerForm.register("address")} />
+                 </div>
+                 <div>
+                    <Label htmlFor="copyright">Texto de Copyright</Label>
+                    <Input id="copyright" {...footerForm.register("copyright")} />
+                 </div>
+                 <div className="grid md:grid-cols-2 gap-4">
+                    <div>
+                        <Label htmlFor="termsUrl">URL dos Termos de Uso</Label>
+                        <Input id="termsUrl" type="url" {...footerForm.register("termsUrl")} />
+                    </div>
+                    <div>
+                        <Label htmlFor="privacyUrl">URL da Política de Privacidade</Label>
+                        <Input id="privacyUrl" type="url" {...footerForm.register("privacyUrl")} />
+                    </div>
+                 </div>
+            </CardContent>
+            <CardFooter className="border-t px-6 py-4">
+                <Button type="submit">Salvar Rodapé</Button>
+            </CardFooter>
+        </form>
       </Card>
 
       <Card>

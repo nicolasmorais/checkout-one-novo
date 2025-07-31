@@ -66,11 +66,13 @@ export default function ThemeUpdater() {
     // Listen for changes from the personalization page
     window.addEventListener('storage', applyTheme);
     window.addEventListener('themeChanged', applyTheme);
+    window.addEventListener('footerChanged', () => window.location.reload()); // Simple reload for footer
 
 
     return () => {
       window.removeEventListener('storage', applyTheme);
       window.removeEventListener('themeChanged', applyTheme);
+      window.removeEventListener('footerChanged', () => window.location.reload());
     };
   }, []);
 
