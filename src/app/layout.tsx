@@ -4,6 +4,7 @@ import './globals.css';
 import ThemeUpdater from '@/components/theme-updater';
 import MarketingScripts from '@/components/marketing-scripts';
 import { Suspense } from 'react';
+import SiteBranding from '@/components/site-branding';
 
 export const metadata: Metadata = {
   title: 'Firebase Studio App',
@@ -22,6 +23,7 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=Inter&display=swap" rel="stylesheet" />
         <ThemeUpdater />
+        <SiteBranding />
         <Suspense fallback={null}>
           <MarketingScripts location="head" />
         </Suspense>

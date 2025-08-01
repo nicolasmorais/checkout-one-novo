@@ -14,6 +14,7 @@ import { useToast } from "@/hooks/use-toast";
 import { getReviews, saveReview, updateReview, deleteReview, Review } from "@/services/reviews-service";
 import { getFooterData, saveFooterData, FooterData } from "@/services/footer-service";
 import { getCheckoutSettings, saveCheckoutSettings, CheckoutSettings } from "@/services/checkout-settings-service";
+import { getSiteSettings, saveSiteSettings, SiteSettings } from "@/services/site-settings-service";
 import { Textarea } from "@/components/ui/textarea";
 import {
   AlertDialog,
@@ -85,7 +86,15 @@ const reviewSchema = z.object({
   avatarUrl: z.string().url("URL do avatar inválida.").optional().or(z.literal('')),
 });
 
+const siteSettingsSchema = z.object({
+    siteName: z.string().min(1, "O nome do site é obrigatório."),
+    faviconUrl: z.string().url("URL do favicon inválida.").or(z.literal('')),
+    sidebarLogoUrl: z.string().url("URL do logo inválida.").or(z.literal('')),
+})
+
 type ReviewFormData = z.infer<typeof reviewSchema>;
+type SiteSettingsFormData = z.infer<typeof siteSettingsSchema>;
+
 
 export default function PersonalizacaoPage() {
   const [primaryColor, setPrimaryColor] = useState("#6d28d9");
@@ -109,6 +118,11 @@ export default function PersonalizacaoPage() {
       defaultValues: getCheckoutSettings()
   });
 
+  const siteSettingsForm = useForm<SiteSettingsFormData>({
+      resolver: zodResolver(siteSettingsSchema),
+      defaultValues: getSiteSettings()
+  })
+
   useEffect(() => {
     // Load theme color
     const savedColor = localStorage.getItem(PRIMARY_COLOR_STORAGE_KEY);
@@ -123,7 +137,10 @@ export default function PersonalizacaoPage() {
     // Load footer data
     footerForm.reset(getFooterData());
 
-  }, [footerForm, checkoutSettingsForm]);
+    // Load site settings
+    siteSettingsForm.reset(getSiteSettings());
+
+  }, [footerForm, checkoutSettingsForm, siteSettingsForm]);
 
   const previewStyle: React.CSSProperties = {
     backgroundColor: primaryColor,
@@ -195,9 +212,41 @@ export default function PersonalizacaoPage() {
       setSelectedReview(null);
     }
   };
+  
+  const handleSaveSiteSettings = (data: SiteSettingsFormData) => {
+      saveSiteSettings(data);
+      toast({ title: "Identidade Visual Salva!", description: "As configurações do site foram atualizadas."})
+  }
 
   return (
     <div className="space-y-6">
+       <Card>
+        <CardHeader>
+          <CardTitle>Identidade Visual do Site</CardTitle>
+          <CardDescription>
+            Personalize o título, favicon e logo do seu site.
+          </CardDescription>
+        </CardHeader>
+        <form onSubmit={siteSettingsForm.handleSubmit(handleSaveSiteSettings)}>
+            <CardContent className="space-y-4">
+                 <div>
+                    <Label htmlFor="siteName">Título do Site (Aba do Navegador)</Label>
+                    <Input id="siteName" {...siteSettingsForm.register("siteName")} />
+                 </div>
+                 <div>
+                    <Label htmlFor="faviconUrl">URL do Favicon</Label>
+                    <Input id="faviconUrl" placeholder="https://..." {...siteSettingsForm.register("faviconUrl")} />
+                 </div>
+                 <div>
+                    <Label htmlFor="sidebarLogoUrl">URL do Logo da Sidebar</Label>
+                    <Input id="sidebarLogoUrl" placeholder="https://..." {...siteSettingsForm.register("sidebarLogoUrl")} />
+                 </div>
+            </CardContent>
+            <CardFooter className="border-t px-6 py-4 mt-6">
+                <Button type="submit">Salvar Identidade Visual</Button>
+            </CardFooter>
+        </form>
+      </Card>
       <Card>
         <CardHeader>
           <CardTitle>Personalize a Aparência</CardTitle>
@@ -417,5 +466,3 @@ export default function PersonalizacaoPage() {
     </div>
   );
 }
-
-    
