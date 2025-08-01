@@ -29,7 +29,7 @@ export default function Logo({ standalone = false }: LogoProps) {
   const isCollapsed = !standalone && state === "collapsed";
 
   return (
-    <div className={cn("flex items-center justify-center", isCollapsed ? "h-10 w-10" : "h-10 w-auto")}>
+    <div className={cn("flex items-center justify-start", isCollapsed ? "h-10 w-10 justify-center" : "h-10 w-auto")}>
         {logoUrl ? (
              <Image 
                 src={logoUrl} 
@@ -43,7 +43,7 @@ export default function Logo({ standalone = false }: LogoProps) {
                 unoptimized
               />
         ) : (
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-foreground text-background">
+            <div className={cn("flex h-10 w-10 items-center justify-center rounded-lg bg-foreground text-background", isCollapsed ? "" : "ml-2")}>
                 <MessageSquareCode className="h-6 w-6" />
             </div>
         )}
