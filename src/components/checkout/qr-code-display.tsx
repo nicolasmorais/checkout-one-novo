@@ -86,7 +86,7 @@ export default function QrCodeDisplay({ userData, paymentData, onScanned }: QrCo
               data-ai-hint="qr code"
             />
           </div>
-           <div className="w-full text-center font-mono text-sm break-all p-3 mb-2 bg-muted rounded-md border border-dashed">
+           <div className="w-full text-center font-mono text-sm break-all p-3 mb-2 bg-gray-50 dark:bg-gray-800/50 rounded-md border border-dashed">
             {paymentData.pixCode}
           </div>
           <Button onClick={handleCopy} className="w-full">
