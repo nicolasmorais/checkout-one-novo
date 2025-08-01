@@ -47,7 +47,8 @@ const checkPaymentStatusFlow = ai.defineFlow(
                     'Accept': 'application/json',
                     'Content-Type': 'application/json',
                 },
-                redirect: 'follow'
+                redirect: 'follow',
+                cache: 'no-store', // Ensure we always get the latest status
             });
 
             if (response.status === 404) {
