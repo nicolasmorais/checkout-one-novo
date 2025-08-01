@@ -27,7 +27,6 @@ import {
     Percent,
     DollarSign,
 } from "lucide-react";
-import { updateSaleStatus } from "@/services/sales-service";
 import { checkPaymentStatus } from "@/ai/flows/check-payment-status-flow";
 import { useToast } from "@/hooks/use-toast";
 import { useGlobalFilter } from "@/contexts/global-filter-context";
@@ -62,9 +61,13 @@ export default function SalesPage() {
     try {
       const result = await checkPaymentStatus(transactionId);
       if (result && result.status) {
-        // The checkPaymentStatus flow now handles the update and returns the new list
-        const updatedSales = await updateSaleStatus(transactionId, result.status);
-        setSales(updatedSales);
+        setSales(currentSales => 
+          currentSales.map(sale => 
+            sale.transaction_id === transactionId 
+              ? { ...sale, status: result.status } 
+              : sale
+          )
+        );
         toast({
             description: `Status da transação atualizado para: ${result.status}`,
         });
@@ -88,9 +91,6 @@ export default function SalesPage() {
   const handleRefresh = useCallback(async () => {
     setIsRefreshing(true);
     try {
-        // The fetchSales logic is in the context, just need to trigger it.
-        // A more robust way might be to have a dedicated refetch function in the context.
-        // For now, we assume re-calling getSales and setting them is the way.
         const { getSales } = await import('@/services/sales-service');
         const salesData = await getSales();
         setSales(salesData);
@@ -109,10 +109,7 @@ export default function SalesPage() {
   }, [setSales, toast, setIsRefreshing]);
 
   useEffect(() => {
-    // Register the refresh handler with the context
     setOnRefresh(() => handleRefresh);
-    
-    // Cleanup on unmount
     return () => setOnRefresh(() => () => {});
   }, [handleRefresh, setOnRefresh]);
 
