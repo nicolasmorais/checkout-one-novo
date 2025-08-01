@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import {
   Sidebar,
@@ -131,7 +131,9 @@ export default function DashboardLayout({
                 </div>
                 <h1 className="text-2xl font-bold">{getPageTitle()}</h1>
               </div>
-              {showGlobalFilter && <GlobalDateFilter />}
+              <Suspense fallback={<div className="h-9 w-64 rounded-md bg-gray-200 animate-pulse" />}>
+                {showGlobalFilter && <GlobalDateFilter />}
+              </Suspense>
             </header>
             {children}
           </div>
