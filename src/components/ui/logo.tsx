@@ -5,8 +5,12 @@ import { MessageSquareCode } from "lucide-react";
 import { useSidebar } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
 
-export default function Logo() {
-  const { state } = useSidebar();
+interface LogoProps {
+    standalone?: boolean;
+}
+
+export default function Logo({ standalone = false }: LogoProps) {
+  const { state } = !standalone ? useSidebar() : { state: 'expanded' };
 
   return (
     <div className="flex items-center gap-3">
@@ -16,7 +20,7 @@ export default function Logo() {
         <div
         className={cn(
             "text-lg font-bold text-foreground transition-opacity duration-200",
-            state === "collapsed" ? "opacity-0" : "opacity-100"
+            !standalone && state === "collapsed" ? "opacity-0" : "opacity-100"
         )}
         >
             <span className="text-primary">One</span>Conversion
