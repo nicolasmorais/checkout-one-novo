@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useForm, useForm as useFooterForm } from "react-hook-form";
+import { useForm, useForm as useFooterForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter, CardDescription } from "@/components/ui/card";
@@ -418,3 +418,4 @@ export default function PersonalizacaoPage() {
   );
 }
 
+    
