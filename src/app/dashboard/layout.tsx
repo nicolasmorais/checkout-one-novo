@@ -13,7 +13,7 @@ import {
   SidebarTrigger,
   SidebarContent,
 } from "@/components/ui/sidebar";
-import { Home, BarChart, ShoppingCart, Settings, LogOut, Paintbrush, Package } from "lucide-react";
+import { Home, BarChart, ShoppingCart, Settings, LogOut, Paintbrush, Package, Tags } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import Logo from "@/components/ui/logo";
@@ -25,6 +25,7 @@ const menuItems = [
     { path: "/dashboard/sales", icon: ShoppingCart, label: "Vendas" },
     { path: "/dashboard/products", icon: Package, label: "Produtos" },
     { path: "/dashboard/analytics", icon: BarChart, label: "Análises" },
+    { path: "/dashboard/marketing", icon: Tags, label: "Marketing" },
 ];
 
 const settingsMenuItems = [

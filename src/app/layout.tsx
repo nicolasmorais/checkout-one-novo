@@ -2,6 +2,7 @@
 import type {Metadata} from 'next';
 import './globals.css';
 import ThemeUpdater from '@/components/theme-updater';
+import MarketingScripts from '@/components/marketing-scripts';
 
 export const metadata: Metadata = {
   title: 'Firebase Studio App',
@@ -20,8 +21,12 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=Inter&display=swap" rel="stylesheet" />
         <ThemeUpdater />
+        <MarketingScripts location="head" />
       </head>
-      <body className="font-body antialiased">{children}</body>
+      <body className="font-body antialiased">
+        <MarketingScripts location="body" />
+        {children}
+      </body>
     </html>
   );
 }
