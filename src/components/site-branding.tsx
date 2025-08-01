@@ -1,14 +1,14 @@
 
 'use client';
 
-import { useEffect } from 'react';
-import { getSiteSettings } from '@/services/site-settings-service';
+import { useEffect, useState } from 'react';
+import { getSiteSettings, SiteSettings } from '@/services/site-settings-service';
 
 export default function SiteBranding() {
+  const [settings, setSettings] = useState<SiteSettings>(getSiteSettings());
+
   useEffect(() => {
     const applyBranding = () => {
-      const settings = getSiteSettings();
-      
       // Update title
       document.title = settings.siteName;
 
@@ -23,11 +23,21 @@ export default function SiteBranding() {
     };
 
     applyBranding();
+  }, [settings]);
 
-    window.addEventListener('siteSettingsChanged', applyBranding);
+
+  useEffect(() => {
+    const handleSettingsChange = () => {
+      setSettings(getSiteSettings());
+    };
+
+    window.addEventListener('siteSettingsChanged', handleSettingsChange);
+    // Also check on storage change for cross-tab updates
+    window.addEventListener('storage', handleSettingsChange);
 
     return () => {
-      window.removeEventListener('siteSettingsChanged', applyBranding);
+      window.removeEventListener('siteSettingsChanged', handleSettingsChange);
+      window.removeEventListener('storage', handleSettingsChange);
     };
   }, []);
 
