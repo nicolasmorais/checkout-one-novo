@@ -1,6 +1,8 @@
 
 "use client";
 
+import { useEffect, useState } from "react";
+import { useRouter, usePathname } from "next/navigation";
 import {
   Sidebar,
   SidebarGroup,
@@ -13,12 +15,12 @@ import {
   SidebarTrigger,
   SidebarContent,
 } from "@/components/ui/sidebar";
-import { Home, BarChart, ShoppingCart, Settings, LogOut, Paintbrush, Package, Tags } from "lucide-react";
+import { Home, BarChart, ShoppingCart, Settings, LogOut, Paintbrush, Package, Tags, Loader2 } from "lucide-react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
 import Logo from "@/components/ui/logo";
 import { GlobalFilterProvider } from "@/contexts/global-filter-context";
 import GlobalDateFilter from "@/components/dashboard/global-date-filter";
+import { isAuthenticated, logout } from "@/services/auth-service";
 
 const menuItems = [
     { path: "/dashboard", icon: Home, label: "Visão Geral" },
@@ -31,15 +33,29 @@ const menuItems = [
 const settingsMenuItems = [
     { path: "/dashboard/personalizacao", icon: Paintbrush, label: "Personalização" },
     { path: "#", icon: Settings, label: "Configurações" },
-    { path: "/", icon: LogOut, label: "Sair" },
-]
+];
 
 export default function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const router = useRouter();
   const pathname = usePathname();
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
+
+  useEffect(() => {
+    if (!isAuthenticated()) {
+      router.replace("/login");
+    } else {
+      setIsCheckingAuth(false);
+    }
+  }, [router]);
+  
+  const handleLogout = () => {
+    logout();
+    router.replace('/login');
+  };
 
   const isActive = (path: string) => {
     return pathname === path;
@@ -51,6 +67,14 @@ export default function DashboardLayout({
   }
 
   const showGlobalFilter = ["/dashboard", "/dashboard/sales", "/dashboard/analytics"].includes(pathname);
+
+  if (isCheckingAuth) {
+    return (
+      <div className="flex h-screen w-full items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <GlobalFilterProvider>
@@ -81,13 +105,19 @@ export default function DashboardLayout({
                       {settingsMenuItems.map(item => (
                           <SidebarMenuItem key={item.label}>
                               <SidebarMenuButton asChild isActive={isActive(item.path)}>
-                                  <Link href={item.path === '/' ? '/' : item.path}>
+                                  <Link href={item.path}>
                                       <item.icon />
                                       {item.label}
                                   </Link>
                               </SidebarMenuButton>
                           </SidebarMenuItem>
                       ))}
+                       <SidebarMenuItem>
+                          <SidebarMenuButton onClick={handleLogout}>
+                            <LogOut />
+                            Sair
+                          </SidebarMenuButton>
+                      </SidebarMenuItem>
                   </SidebarMenu>
               </SidebarGroup>
           </SidebarContent>
