@@ -16,38 +16,42 @@ import { Copy, Check, TriangleAlert } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { CreatePaymentOutput } from "@/ai/flows/create-payment-flow";
+import { getCheckoutSettings, CheckoutSettings } from "@/services/checkout-settings-service";
+import * as fbq from '@/lib/fpixel';
+import { getMarketingScripts } from "@/services/marketing-service";
+import { Product } from "@/services/products-service";
 
 interface QrCodeDisplayProps {
   userData: {
     name: string;
     email: string;
   };
+  product: Omit<Product, 'id' | 'slug'>,
   paymentData: CreatePaymentOutput;
   onScanned: () => void;
 }
 
-const ALERT_ENABLED_KEY = "checkout_alert_enabled";
-const ALERT_MESSAGE_KEY = "checkout_alert_message";
-
-export default function QrCodeDisplay({ userData, paymentData, onScanned }: QrCodeDisplayProps) {
+export default function QrCodeDisplay({ userData, product, paymentData, onScanned }: QrCodeDisplayProps) {
   const [isCopied, setIsCopied] = useState(false);
-  const [showAlert, setShowAlert] = useState(false);
-  const [alertMessage, setAlertMessage] = useState("");
+  const [settings, setSettings] = useState<CheckoutSettings | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
     try {
-      const alertEnabled = localStorage.getItem(ALERT_ENABLED_KEY) === 'true';
-      const message = localStorage.getItem(ALERT_MESSAGE_KEY);
-      const defaultMessage = "⚠️ Atenção: O não pagamento do Pix pode gerar uma negativação no Serasa e SPC.";
-      
-      setShowAlert(alertEnabled);
-      setAlertMessage(message || defaultMessage);
+      setSettings(getCheckoutSettings());
+      const scripts = getMarketingScripts();
+      if (scripts.facebook_pixel_id) {
+          fbq.event('Purchase', {
+              currency: 'BRL',
+              value: product.value,
+              content_name: product.name,
+              payment_type: 'PIX'
+          });
+      }
     } catch (error) {
-      // localStorage might not be available
       console.error("Could not read from localStorage", error);
     }
-  }, []);
+  }, [product]);
 
   const handleCopy = () => {
     navigator.clipboard.writeText(paymentData.pixCode);
@@ -60,11 +64,11 @@ export default function QrCodeDisplay({ userData, paymentData, onScanned }: QrCo
 
   return (
     <>
-      {showAlert && (
+      {settings?.showAlert && (
         <Alert variant="warning" className="mb-4 shadow-md">
             <TriangleAlert className="h-4 w-4" />
             <AlertDescription>
-              {alertMessage}
+              {settings.alertMessage}
             </AlertDescription>
         </Alert>
       )}
@@ -115,3 +119,4 @@ export default function QrCodeDisplay({ userData, paymentData, onScanned }: QrCo
     </>
   );
 }
+

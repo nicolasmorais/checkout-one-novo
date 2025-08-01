@@ -4,6 +4,7 @@
 export interface MarketingScripts {
     gtm_head?: string;
     gtm_body?: string;
+    facebook_pixel_id?: string;
 }
 
 const MARKETING_SCRIPTS_STORAGE_KEY = "firebase-studio-marketing-scripts";
@@ -11,6 +12,7 @@ const MARKETING_SCRIPTS_STORAGE_KEY = "firebase-studio-marketing-scripts";
 const DEFAULT_SCRIPTS: MarketingScripts = {
     gtm_head: "",
     gtm_body: "",
+    facebook_pixel_id: "",
 };
 
 /**
@@ -42,6 +44,7 @@ export function saveMarketingScripts(data: MarketingScripts): void {
         const dataToSave = {
             gtm_head: data.gtm_head || "",
             gtm_body: data.gtm_body || "",
+            facebook_pixel_id: data.facebook_pixel_id || "",
         };
         window.localStorage.setItem(MARKETING_SCRIPTS_STORAGE_KEY, JSON.stringify(dataToSave));
     } catch (error) {

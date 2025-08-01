@@ -101,7 +101,7 @@ export default function CheckoutPageContent({ params }: { params: { slug: string
         return <PersonalInfoForm product={product} onSubmit={handleInfoSubmit} isLoading={isLoading} />;
       case "QR":
         if (userData && paymentData) {
-          return <QrCodeDisplay userData={userData} paymentData={paymentData} onScanned={handleQrScanned} />;
+          return <QrCodeDisplay userData={userData} product={product} paymentData={paymentData} onScanned={handleQrScanned} />;
         }
         setStep("INFO");
         return null;
@@ -161,4 +161,3 @@ export default function CheckoutPageContent({ params }: { params: { slug: string
   );
 }
 
-    

@@ -13,6 +13,7 @@ import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { getReviews, saveReview, updateReview, deleteReview, Review } from "@/services/reviews-service";
 import { getFooterData, saveFooterData, FooterData } from "@/services/footer-service";
+import { getCheckoutSettings, saveCheckoutSettings, CheckoutSettings } from "@/services/checkout-settings-service";
 import { Textarea } from "@/components/ui/textarea";
 import {
   AlertDialog,
@@ -76,8 +77,6 @@ function getContrastColor(hex: string): string {
 }
 
 const PRIMARY_COLOR_STORAGE_KEY = "theme_primary_color_hex";
-const ALERT_ENABLED_KEY = "checkout_alert_enabled";
-const ALERT_MESSAGE_KEY = "checkout_alert_message";
 
 const reviewSchema = z.object({
   name: z.string().min(2, "O nome é obrigatório."),
@@ -94,9 +93,7 @@ export default function PersonalizacaoPage() {
   const [isReviewFormOpen, setIsReviewFormOpen] = useState(false);
   const [isDeleteAlertOpen, setIsDeleteAlertOpen] = useState(false);
   const [selectedReview, setSelectedReview] = useState<Review | null>(null);
-  const [showAlert, setShowAlert] = useState(false);
-  const [alertMessage, setAlertMessage] = useState("⚠️ Atenção: O não pagamento do Pix pode gerar uma negativação no Serasa e SPC.");
-
+  
   const { toast } = useToast();
 
   const reviewForm = useForm<ReviewFormData>({
@@ -108,6 +105,10 @@ export default function PersonalizacaoPage() {
       defaultValues: getFooterData()
   });
 
+  const checkoutSettingsForm = useForm<CheckoutSettings>({
+      defaultValues: getCheckoutSettings()
+  });
+
   useEffect(() => {
     // Load theme color
     const savedColor = localStorage.getItem(PRIMARY_COLOR_STORAGE_KEY);
@@ -117,15 +118,12 @@ export default function PersonalizacaoPage() {
     setReviews(getReviews());
     
     // Load checkout alert settings
-    const savedShowAlert = localStorage.getItem(ALERT_ENABLED_KEY);
-    const savedAlertMessage = localStorage.getItem(ALERT_MESSAGE_KEY);
-    setShowAlert(savedShowAlert === 'true');
-    if (savedAlertMessage) setAlertMessage(savedAlertMessage);
+    checkoutSettingsForm.reset(getCheckoutSettings());
 
     // Load footer data
     footerForm.reset(getFooterData());
 
-  }, [footerForm]);
+  }, [footerForm, checkoutSettingsForm]);
 
   const previewStyle: React.CSSProperties = {
     backgroundColor: primaryColor,
@@ -144,9 +142,8 @@ export default function PersonalizacaoPage() {
     window.dispatchEvent(new Event('themeChanged'));
   };
 
-  const handleSaveCheckoutSettings = () => {
-    localStorage.setItem(ALERT_ENABLED_KEY, String(showAlert));
-    localStorage.setItem(ALERT_MESSAGE_KEY, alertMessage);
+  const handleSaveCheckoutSettings = (data: CheckoutSettings) => {
+    saveCheckoutSettings(data);
     toast({ title: "Configurações do Checkout Salvas!", description: "Suas alterações foram aplicadas." });
   };
   
@@ -232,32 +229,45 @@ export default function PersonalizacaoPage() {
             <CardTitle>Configurações do Checkout</CardTitle>
             <CardDescription>Ajuste as mensagens e alertas exibidos na página de pagamento.</CardDescription>
         </CardHeader>
-        <CardContent className="space-y-6">
-            <div className="flex items-center justify-between rounded-lg border p-4">
-                <div>
-                    <Label htmlFor="alert-switch" className="font-medium">Exibir alerta de inadimplência</Label>
-                    <p className="text-sm text-muted-foreground">Mostra um aviso na tela do QR Code.</p>
+        <form onSubmit={checkoutSettingsForm.handleSubmit(handleSaveCheckoutSettings)}>
+            <CardContent className="space-y-6">
+                <div className="flex items-center justify-between rounded-lg border p-4">
+                    <div>
+                        <Label htmlFor="alert-switch" className="font-medium">Exibir alerta de inadimplência</Label>
+                        <p className="text-sm text-muted-foreground">Mostra um aviso na tela do QR Code.</p>
+                    </div>
+                    <Controller
+                        control={checkoutSettingsForm.control}
+                        name="showAlert"
+                        render={({ field }) => (
+                            <Switch
+                                id="alert-switch"
+                                checked={field.value}
+                                onCheckedChange={field.onChange}
+                            />
+                        )}
+                    />
                 </div>
-                <Switch
-                    id="alert-switch"
-                    checked={showAlert}
-                    onCheckedChange={setShowAlert}
-                />
-            </div>
-            <div className="space-y-2">
-                <Label htmlFor="alert-message">Mensagem de alerta Pix</Label>
-                <Textarea
-                    id="alert-message"
-                    value={alertMessage}
-                    onChange={(e) => setAlertMessage(e.target.value)}
-                    placeholder="Digite a mensagem de alerta..."
-                    disabled={!showAlert}
-                />
-            </div>
-        </CardContent>
-        <CardFooter className="border-t px-6 py-4">
-            <Button onClick={handleSaveCheckoutSettings}>Salvar Configurações do Checkout</Button>
-        </CardFooter>
+                <div className="space-y-2">
+                    <Label htmlFor="alert-message">Mensagem de alerta Pix</Label>
+                     <Controller
+                        control={checkoutSettingsForm.control}
+                        name="alertMessage"
+                        render={({ field }) => (
+                           <Textarea
+                                id="alert-message"
+                                placeholder="Digite a mensagem de alerta..."
+                                disabled={!checkoutSettingsForm.watch("showAlert")}
+                                {...field}
+                            />
+                        )}
+                    />
+                </div>
+            </CardContent>
+            <CardFooter className="border-t px-6 py-4">
+                <Button type="submit">Salvar Configurações do Checkout</Button>
+            </CardFooter>
+        </form>
       </Card>
 
        <Card>
@@ -407,3 +417,4 @@ export default function PersonalizacaoPage() {
     </div>
   );
 }
+

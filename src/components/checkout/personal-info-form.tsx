@@ -25,7 +25,10 @@ import { ShieldCheck, Star, Loader2 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Product } from "@/services/products-service";
 import { Review, getReviews } from "@/services/reviews-service";
+import { getMarketingScripts } from "@/services/marketing-service";
 import { useState, useEffect } from "react";
+import * as fbq from '@/lib/fpixel';
+
 
 const formSchema = z.object({
   name: z.string().min(2, {
@@ -46,9 +49,12 @@ interface PersonalInfoFormProps {
 
 export default function PersonalInfoForm({ product, onSubmit, isLoading }: PersonalInfoFormProps) {
   const [reviews, setReviews] = useState<Review[]>([]);
+  const [pixelId, setPixelId] = useState<string | undefined>(undefined);
 
   useEffect(() => {
     setReviews(getReviews());
+    const scripts = getMarketingScripts();
+    setPixelId(scripts.facebook_pixel_id);
   }, []);
 
   const form = useForm<UserData>({
@@ -60,6 +66,13 @@ export default function PersonalInfoForm({ product, onSubmit, isLoading }: Perso
   });
 
   function handleFormSubmit(values: UserData) {
+    if (pixelId) {
+        fbq.event('InitiateCheckout', {
+            content_name: product.name,
+            currency: 'BRL',
+            value: product.value,
+        });
+    }
     onSubmit(values);
   }
 
@@ -172,4 +185,3 @@ export default function PersonalInfoForm({ product, onSubmit, isLoading }: Perso
   );
 }
 
-    
