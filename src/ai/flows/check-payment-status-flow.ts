@@ -62,6 +62,7 @@ const checkPaymentStatusFlow = ai.defineFlow(
 
             const data = await response.json();
             
+            // According to PushInPay, status is inside the response object.
             const status = data.status === 'approved' ? 'Aprovado' : 'Pendente';
 
             if (status === 'Aprovado') {
