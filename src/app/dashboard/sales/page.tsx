@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -27,7 +27,7 @@ import {
     Percent,
     DollarSign,
 } from "lucide-react";
-import { getSales, updateSaleStatus, Sale } from "@/services/sales-service";
+import { updateSaleStatus } from "@/services/sales-service";
 import { checkPaymentStatus } from "@/ai/flows/check-payment-status-flow";
 import { useToast } from "@/hooks/use-toast";
 import { useGlobalFilter } from "@/contexts/global-filter-context";
@@ -35,9 +35,8 @@ import { useGlobalFilter } from "@/contexts/global-filter-context";
 
 export default function SalesPage() {
   const [loadingStates, setLoadingStates] = useState<Record<string, boolean>>({});
-  const [isRefreshing, setIsRefreshing] = useState(false);
   const { toast } = useToast();
-  const { filteredSales, setSales } = useGlobalFilter();
+  const { filteredSales, setSales, setOnRefresh, setIsRefreshing } = useGlobalFilter();
 
   const salesMetrics = useMemo(() => {
     const totalSales = filteredSales.length;
@@ -89,6 +88,10 @@ export default function SalesPage() {
   const handleRefresh = useCallback(async () => {
     setIsRefreshing(true);
     try {
+        // The fetchSales logic is in the context, just need to trigger it.
+        // A more robust way might be to have a dedicated refetch function in the context.
+        // For now, we assume re-calling getSales and setting them is the way.
+        const { getSales } = await import('@/services/sales-service');
         const salesData = await getSales();
         setSales(salesData);
         toast({
@@ -103,7 +106,16 @@ export default function SalesPage() {
     } finally {
         setIsRefreshing(false);
     }
-  }, [setSales, toast]);
+  }, [setSales, toast, setIsRefreshing]);
+
+  useEffect(() => {
+    // Register the refresh handler with the context
+    setOnRefresh(() => handleRefresh);
+    
+    // Cleanup on unmount
+    return () => setOnRefresh(() => () => {});
+  }, [handleRefresh, setOnRefresh]);
+
 
   return (
     <div className="space-y-6">
@@ -146,7 +158,7 @@ export default function SalesPage() {
         </Card>
       </div>
       <Card>
-        <CardHeader className="flex items-center justify-between">
+        <CardHeader>
             <div className="flex items-center gap-2">
               <ShoppingCart className="h-5 w-5" />
               <div>
@@ -156,10 +168,6 @@ export default function SalesPage() {
                 </CardDescription>
               </div>
             </div>
-            <Button variant="outline" size="sm" onClick={handleRefresh} disabled={isRefreshing}>
-                {isRefreshing ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <RefreshCw className="mr-2 h-4 w-4"/>}
-                Atualizar
-            </Button>
         </CardHeader>
         <CardContent>
           <Table>

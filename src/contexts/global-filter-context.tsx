@@ -1,12 +1,14 @@
 
 "use client";
 
-import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
+import React, { createContext, useContext, useState, useEffect, useMemo, useCallback } from 'react';
 import { DateRange } from 'react-day-picker';
 import { subDays, startOfDay, endOfDay } from 'date-fns';
 import { getSales, Sale } from '@/services/sales-service';
 
 export type Period = 'today' | '7d' | '30d' | 'custom';
+
+type RefreshFunction = () => void;
 
 interface GlobalFilterContextType {
   period: Period;
@@ -17,6 +19,10 @@ interface GlobalFilterContextType {
   setSales: React.Dispatch<React.SetStateAction<Sale[]>>;
   filteredSales: Sale[];
   isLoading: boolean;
+  isRefreshing: boolean;
+  setIsRefreshing: React.Dispatch<React.SetStateAction<boolean>>;
+  onRefresh: RefreshFunction;
+  setOnRefresh: (fn: () => RefreshFunction) => void;
 }
 
 const GlobalFilterContext = createContext<GlobalFilterContextType | undefined>(undefined);
@@ -29,6 +35,9 @@ export const GlobalFilterProvider: React.FC<{ children: React.ReactNode }> = ({ 
   });
   const [sales, setSales] = useState<Sale[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [onRefresh, setOnRefresh] = useState<RefreshFunction>(() => {});
+
 
   useEffect(() => {
     async function fetchSales() {
@@ -43,6 +52,10 @@ export const GlobalFilterProvider: React.FC<{ children: React.ReactNode }> = ({ 
         }
     }
     fetchSales();
+  }, []);
+
+  const handleSetOnRefresh = useCallback((fn: () => RefreshFunction) => {
+    setOnRefresh(fn);
   }, []);
 
   const setPeriod = (newPeriod: Period) => {
@@ -92,7 +105,14 @@ export const GlobalFilterProvider: React.FC<{ children: React.ReactNode }> = ({ 
 
 
   return (
-    <GlobalFilterContext.Provider value={{ period, setPeriod, dateRange, setDateRange, sales, setSales, filteredSales, isLoading }}>
+    <GlobalFilterContext.Provider value={{ 
+        period, setPeriod, 
+        dateRange, setDateRange, 
+        sales, setSales, 
+        filteredSales, isLoading,
+        isRefreshing, setIsRefreshing,
+        onRefresh, setOnRefresh: handleSetOnRefresh
+    }}>
       {children}
     </GlobalFilterContext.Provider>
   );

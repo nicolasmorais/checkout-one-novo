@@ -15,12 +15,13 @@ import {
   SidebarTrigger,
   SidebarContent,
 } from "@/components/ui/sidebar";
-import { Home, BarChart, ShoppingCart, Settings, LogOut, Paintbrush, Package, Tags, Loader2 } from "lucide-react";
+import { Home, BarChart, ShoppingCart, Settings, LogOut, Paintbrush, Package, Tags, Loader2, RefreshCw } from "lucide-react";
 import Link from "next/link";
 import Logo from "@/components/ui/logo";
-import { GlobalFilterProvider } from "@/contexts/global-filter-context";
+import { GlobalFilterProvider, useGlobalFilter } from "@/contexts/global-filter-context";
 import GlobalDateFilter from "@/components/dashboard/global-date-filter";
 import { isAuthenticated, logout } from "@/services/auth-service";
+import { Button } from "@/components/ui/button";
 
 const menuItems = [
     { path: "/dashboard", icon: Home, label: "Visão Geral" },
@@ -34,6 +35,41 @@ const settingsMenuItems = [
     { path: "/dashboard/personalizacao", icon: Paintbrush, label: "Personalização" },
     { path: "#", icon: Settings, label: "Configurações" },
 ];
+
+function DashboardHeader() {
+    const pathname = usePathname();
+    const { onRefresh, isRefreshing } = useGlobalFilter();
+
+    const getPageTitle = () => {
+        const activeItem = menuItems.find(item => item.path === pathname) || settingsMenuItems.find(item => item.path === pathname) || { label: "Produtos", path: "/dashboard/products"};
+        return activeItem ? activeItem.label : "Dashboard";
+    }
+
+    const showGlobalFilter = ["/dashboard", "/dashboard/sales", "/dashboard/analytics"].includes(pathname);
+    const showRefreshButton = pathname === "/dashboard/sales";
+
+    return (
+        <header className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-2">
+                <div className="md:hidden">
+                    <SidebarTrigger />
+                </div>
+                <h1 className="text-2xl font-bold">{getPageTitle()}</h1>
+            </div>
+            <div className="flex items-center gap-2">
+                <Suspense fallback={<div className="h-9 w-64 rounded-md bg-gray-200 animate-pulse" />}>
+                    {showGlobalFilter && <GlobalDateFilter />}
+                </Suspense>
+                {showRefreshButton && (
+                     <Button variant="outline" size="sm" onClick={onRefresh} disabled={isRefreshing}>
+                        {isRefreshing ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <RefreshCw className="mr-2 h-4 w-4"/>}
+                        Atualizar
+                    </Button>
+                )}
+            </div>
+        </header>
+    )
+}
 
 export default function DashboardLayout({
   children,
@@ -60,13 +96,6 @@ export default function DashboardLayout({
   const isActive = (path: string) => {
     return pathname === path;
   };
-
-  const getPageTitle = () => {
-    const activeItem = menuItems.find(item => item.path === pathname) || settingsMenuItems.find(item => item.path === pathname) || { label: "Produtos", path: "/dashboard/products"};
-    return activeItem ? activeItem.label : "Dashboard";
-  }
-
-  const showGlobalFilter = ["/dashboard", "/dashboard/sales", "/dashboard/analytics"].includes(pathname);
 
   if (isCheckingAuth) {
     return (
@@ -124,17 +153,7 @@ export default function DashboardLayout({
         </Sidebar>
         <SidebarInset>
           <div className="p-4 md:p-6">
-            <header className="flex items-center justify-between mb-6">
-              <div className="flex items-center gap-2">
-                <div className="md:hidden">
-                  <SidebarTrigger />
-                </div>
-                <h1 className="text-2xl font-bold">{getPageTitle()}</h1>
-              </div>
-              <Suspense fallback={<div className="h-9 w-64 rounded-md bg-gray-200 animate-pulse" />}>
-                {showGlobalFilter && <GlobalDateFilter />}
-              </Suspense>
-            </header>
+            <DashboardHeader />
             {children}
           </div>
         </SidebarInset>
