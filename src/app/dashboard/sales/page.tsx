@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -27,7 +27,7 @@ import {
     Percent,
     DollarSign,
 } from "lucide-react";
-import { updateSaleStatus, Sale } from "@/services/sales-service";
+import { getSales, updateSaleStatus, Sale } from "@/services/sales-service";
 import { checkPaymentStatus } from "@/ai/flows/check-payment-status-flow";
 import { useToast } from "@/hooks/use-toast";
 import { useGlobalFilter } from "@/contexts/global-filter-context";
@@ -35,6 +35,7 @@ import { useGlobalFilter } from "@/contexts/global-filter-context";
 
 export default function SalesPage() {
   const [loadingStates, setLoadingStates] = useState<Record<string, boolean>>({});
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const { toast } = useToast();
   const { filteredSales, setSales } = useGlobalFilter();
 
@@ -85,6 +86,25 @@ export default function SalesPage() {
     }
   };
 
+  const handleRefresh = useCallback(async () => {
+    setIsRefreshing(true);
+    try {
+        const salesData = await getSales();
+        setSales(salesData);
+        toast({
+            description: "Lista de vendas atualizada.",
+        });
+    } catch (error) {
+        console.error("Failed to refresh sales", error);
+        toast({
+            variant: "destructive",
+            description: "Ocorreu um erro ao atualizar as vendas.",
+        });
+    } finally {
+        setIsRefreshing(false);
+    }
+  }, [setSales, toast]);
+
   return (
     <div className="space-y-6">
        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -126,14 +146,20 @@ export default function SalesPage() {
         </Card>
       </div>
       <Card>
-        <CardHeader>
-          <div className="flex items-center gap-2">
+        <CardHeader className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
               <ShoppingCart className="h-5 w-5" />
-              <CardTitle>Vendas Recentes ({salesMetrics.totalSales} totais, {salesMetrics.approvedSales} aprovadas)</CardTitle>
-          </div>
-          <CardDescription>
-            Uma lista das suas vendas mais recentes do banco de dados.
-          </CardDescription>
+              <div>
+                <CardTitle>Vendas Recentes ({salesMetrics.totalSales} totais, {salesMetrics.approvedSales} aprovadas)</CardTitle>
+                <CardDescription className="mt-1">
+                    Uma lista das suas vendas mais recentes do banco de dados.
+                </CardDescription>
+              </div>
+            </div>
+            <Button variant="outline" size="sm" onClick={handleRefresh} disabled={isRefreshing}>
+                {isRefreshing ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <RefreshCw className="mr-2 h-4 w-4"/>}
+                Atualizar
+            </Button>
         </CardHeader>
         <CardContent>
           <Table>
