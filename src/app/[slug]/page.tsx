@@ -75,7 +75,7 @@ export default function CheckoutPageContent({ params }: { params: { slug: string
       });
       setPaymentData(paymentResult);
       
-      const newSale: Sale = {
+      const newSale: Omit<Sale, 'id' | 'sale_date'> = {
         transaction_id: paymentResult.transactionId,
         customer_name: data.name,
         customer_email: data.email,

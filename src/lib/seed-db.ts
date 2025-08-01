@@ -1,10 +1,11 @@
 
-import { db, sql } from '@vercel/postgres';
+'use server';
+
+import { sql } from '@vercel/postgres';
 
 export async function createTables() {
+  console.log('Starting table creation...');
   try {
-    await db.connect();
-    
     await sql`
       CREATE TABLE IF NOT EXISTS products (
         id SERIAL PRIMARY KEY,
@@ -14,6 +15,7 @@ export async function createTables() {
         created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
       );
     `;
+    console.log('Table "products" checked/created.');
 
     await sql`
       CREATE TABLE IF NOT EXISTS sales (
@@ -28,8 +30,10 @@ export async function createTables() {
         sale_date TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
       );
     `;
+    console.log('Table "sales" checked/created.');
 
-    console.log('Tables "products" and "sales" created or already exist.');
+    console.log('Successfully finished table creation process.');
+
   } catch (error) {
     console.error('Error creating tables:', error);
     throw error;
