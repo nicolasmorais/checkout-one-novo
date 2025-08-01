@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect, Suspense } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import PersonalInfoForm from "@/components/checkout/personal-info-form";
 import QrCodeDisplay from "@/components/checkout/qr-code-display";
@@ -12,7 +12,8 @@ import { Toaster } from "@/components/ui/toaster";
 import { createPayment, CreatePaymentInput, CreatePaymentOutput } from "@/ai/flows/create-payment-flow";
 import { saveSale, Sale } from "@/services/sales-service";
 import { getProductBySlug, Product } from "@/services/products-service";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
+import { createTables } from "@/lib/seed-db";
 
 type UserData = {
   name: string;
@@ -29,8 +30,6 @@ const DEFAULT_PRODUCT: Omit<Product, 'id' | 'slug'> = {
   logoUrl: "https://placehold.co/80x80.png"
 };
 
-// We receive params because this is a dynamic route.
-// It can be called from the root page.tsx as well, in which case slug will be undefined.
 export default function CheckoutPageContent({ params }: { params: { slug: string | undefined }}) {
   const productSlug = params.slug;
 
@@ -42,57 +41,61 @@ export default function CheckoutPageContent({ params }: { params: { slug: string
   const [productLoading, setProductLoading] = useState(true);
 
   useEffect(() => {
-    // This effect runs when the component mounts or the slug changes.
-    // It's responsible for loading the product information.
-    setProductLoading(true);
-    if (productSlug) {
-        const foundProduct = getProductBySlug(productSlug);
-        if (foundProduct) {
-            setProduct(foundProduct);
-        } else {
-            // If the slug is invalid, it falls back to the default product.
-            setProduct(DEFAULT_PRODUCT);
+    async function setupDatabaseAndLoadProduct() {
+      setProductLoading(true);
+      try {
+        // Ensure database tables are created
+        await createTables();
+        console.log("Database setup complete.");
+        
+        // Load product information
+        if (productSlug) {
+            const foundProduct = getProductBySlug(productSlug);
+            if (foundProduct) {
+                setProduct(foundProduct);
+            }
         }
-    } else {
-        // If no slug is present, load the default product.
-        setProduct(DEFAULT_PRODUCT);
+      } catch (error) {
+        console.error("Error during setup:", error);
+      } finally {
+        setProductLoading(false);
+      }
     }
-    setProductLoading(false);
+    setupDatabaseAndLoadProduct();
   }, [productSlug]);
 
-  const handleInfoSubmit = async (data: Omit<CreatePaymentInput, 'valueInCents'>) => {
+  const handleInfoSubmit = async (data: UserData) => {
     setIsLoading(true);
     setUserData(data);
     try {
       const paymentResult = await createPayment({
-        ...data,
+        name: data.name,
+        email: data.email,
         valueInCents: Math.round(product.value * 100)
       });
       setPaymentData(paymentResult);
       
       const newSale: Sale = {
-        id: new Date().getTime().toString(),
-        transactionId: paymentResult.transactionId,
-        name: data.name,
-        email: data.email,
-        product: product.name,
-        amount: `R$ ${product.value.toFixed(2).replace('.', ',')}`,
+        transaction_id: paymentResult.transactionId,
+        customer_name: data.name,
+        customer_email: data.email,
+        product_name: product.name,
+        amount_in_cents: Math.round(product.value * 100),
         status: "Pendente",
-        pixCode: paymentResult.pixCode,
-        date: new Date(),
+        pix_code: paymentResult.pixCode,
       };
-      saveSale(newSale);
+      await saveSale(newSale);
       
       setStep("QR");
     } catch (error) {
-      console.error("Failed to create payment", error);
+      console.error("Failed to create payment or save sale", error);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleQrScanned = () => {
-    // This flow is currently disabled.
+  const handlePaymentSuccess = () => {
+    setStep("SUCCESS");
   };
 
   const renderStep = () => {
@@ -101,7 +104,7 @@ export default function CheckoutPageContent({ params }: { params: { slug: string
         return <PersonalInfoForm product={product} onSubmit={handleInfoSubmit} isLoading={isLoading} />;
       case "QR":
         if (userData && paymentData) {
-          return <QrCodeDisplay userData={userData} product={product} paymentData={paymentData} onScanned={handleQrScanned} />;
+          return <QrCodeDisplay userData={userData} product={product} paymentData={paymentData} onScanned={handlePaymentSuccess} />;
         }
         setStep("INFO");
         return null;
@@ -116,7 +119,6 @@ export default function CheckoutPageContent({ params }: { params: { slug: string
     }
   };
 
-  // While the product is being loaded based on the slug, show a loading indicator.
   if (productLoading) {
     return (
        <div className="flex flex-col min-h-screen">
@@ -131,7 +133,6 @@ export default function CheckoutPageContent({ params }: { params: { slug: string
     )
   }
 
-  // Once the product is loaded, render the checkout page.
   return (
     <div className="flex flex-col min-h-screen">
       <main className="flex-grow flex w-full flex-col items-center bg-background p-4 font-body">
@@ -160,4 +161,3 @@ export default function CheckoutPageContent({ params }: { params: { slug: string
     </div>
   );
 }
-

@@ -12,10 +12,10 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Copy, Check, TriangleAlert } from "lucide-react";
-import { useState, useEffect } from "react";
+import { Copy, Check, TriangleAlert, Loader2 } from "lucide-react";
+import { useState, useEffect, useCallback } from "react";
 import { useToast } from "@/hooks/use-toast";
-import { CreatePaymentOutput, createPaymentFlow } from "@/ai/flows/create-payment-flow";
+import { CreatePaymentOutput } from "@/ai/flows/create-payment-flow";
 import { getCheckoutSettings, CheckoutSettings } from "@/services/checkout-settings-service";
 import * as fbq from '@/lib/fpixel';
 import { getMarketingScripts } from "@/services/marketing-service";
@@ -35,7 +35,10 @@ interface QrCodeDisplayProps {
 export default function QrCodeDisplay({ userData, product, paymentData, onScanned }: QrCodeDisplayProps) {
   const [isCopied, setIsCopied] = useState(false);
   const [settings, setSettings] = useState<CheckoutSettings | null>(null);
+  const [isCheckingPayment, setIsCheckingPayment] = useState(true);
   const { toast } = useToast();
+
+  const onScannedCallback = useCallback(onScanned, []);
 
   useEffect(() => {
     try {
@@ -55,25 +58,30 @@ export default function QrCodeDisplay({ userData, product, paymentData, onScanne
   }, [product]);
 
   useEffect(() => {
-    const paymentId = paymentData.paymentId;
-    if (!paymentId) return;
+    const transactionId = paymentData.transactionId;
+    if (!transactionId) return;
 
+    console.log(`Starting payment check for transaction ${transactionId}`);
     const interval = setInterval(async () => {
       try {
-        console.log('Checking payment status...');
-        const result = await checkPaymentStatus(paymentId);
-        if (result.status === 'approved') {
+        const result = await checkPaymentStatus(transactionId);
+        if (result?.status === 'Aprovado') {
+          console.log(`Payment approved for transaction ${transactionId}`);
+          setIsCheckingPayment(false);
+          onScannedCallback();
           clearInterval(interval);
-          onScanned();
+        } else {
+            console.log(`Payment status for ${transactionId} is still: ${result?.status || 'Pendente'}`);
         }
       } catch (error) {
         console.error('Error checking payment status:', error);
-        clearInterval(interval);
+        // We don't clear interval on error, maybe it's a temporary network issue
       }
-    }, 3000); // Check every 3 seconds
+    }, 5000); // Check every 5 seconds
 
     const timeout = setTimeout(() => {
         clearInterval(interval);
+        setIsCheckingPayment(false);
         console.log('Stopped checking payment status after 5 minutes.');
     }, 300000); // 5 minutes
 
@@ -81,7 +89,7 @@ export default function QrCodeDisplay({ userData, product, paymentData, onScanne
       clearInterval(interval);
       clearTimeout(timeout);
     }
-  }, [paymentData, onScanned]);
+  }, [paymentData.transactionId, onScannedCallback]);
 
 
   const handleCopy = () => {
@@ -119,6 +127,7 @@ export default function QrCodeDisplay({ userData, product, paymentData, onScanne
               width={256}
               height={256}
               data-ai-hint="qr code"
+              unoptimized
             />
           </div>
            <div className="w-full text-center font-mono text-sm break-all p-3 mb-2 bg-gray-50 dark:bg-gray-800/50 rounded-md border border-dashed">
@@ -142,9 +151,12 @@ export default function QrCodeDisplay({ userData, product, paymentData, onScanne
           </p>
         </CardContent>
         <CardFooter className="flex-col gap-4">
-          <p className="text-xs text-muted-foreground">
-            Aguardando pagamento...
-          </p>
+            {isCheckingPayment && (
+                <div className="flex items-center text-sm text-muted-foreground">
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    <span>Aguardando pagamento...</span>
+                </div>
+            )}
         </CardFooter>
       </Card>
     </>

@@ -9,6 +9,7 @@
 
 import { ai } from '@/ai/genkit';
 import { z } from 'zod';
+import { updateSaleStatus } from '@/services/sales-service';
 
 const CheckPaymentStatusOutputSchema = z.object({
     status: z.string().describe('The current status of the transaction.'),
@@ -61,10 +62,15 @@ const checkPaymentStatusFlow = ai.defineFlow(
 
             const data = await response.json();
             
-            // The API returns the full transaction object. We are interested in the status.
-            // The documentation says the status for a paid transaction is "approved".
+            const status = data.status === 'approved' ? 'Aprovado' : 'Pendente';
+
+            if (status === 'Aprovado') {
+                // If the payment is approved, update its status in our database
+                await updateSaleStatus(transactionId, status);
+            }
+            
             return {
-                status: data.status === 'approved' ? 'Aprovado' : 'Pendente',
+                status: status,
             };
 
         } catch (error) {

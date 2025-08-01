@@ -9,10 +9,9 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart";
-import { Bar, BarChart as RechartsBarChart, XAxis, YAxis } from "recharts";
+import { Bar, BarChart as RechartsBarChart, XAxis, YAxis, CartesianGrid } from "recharts";
 import { useGlobalFilter } from "@/contexts/global-filter-context";
-import { format, eachDayOfInterval, subDays } from "date-fns";
-import { ptBR } from "date-fns/locale";
+import { format, eachDayOfInterval, subDays, parseISO } from "date-fns";
 
 const chartConfig = {
   revenue: {
@@ -22,29 +21,28 @@ const chartConfig = {
 };
 
 export default function DashboardPage() {
-  const { filteredSales, dateRange } = useGlobalFilter();
+  const { filteredSales, dateRange, isLoading } = useGlobalFilter();
 
   const { metrics, chartData } = useMemo(() => {
     const totalOrders = filteredSales.length;
     const approvedSales = filteredSales.filter(s => s.status === "Aprovado");
     const approvedOrders = approvedSales.length;
 
-    const approvedRevenue = approvedSales.reduce((acc, sale) => {
-        return acc + parseFloat(sale.amount.replace(/[^0-9,-]+/g, "").replace(",", "."));
-    }, 0);
+    const approvedRevenue = approvedSales.reduce((acc, sale) => acc + (sale.amount_in_cents / 100), 0);
 
     const approvalRate = totalOrders > 0 ? ((approvedOrders / totalOrders) * 100) : 0;
 
-    const uniqueCustomers = new Set(approvedSales.map(s => s.email)).size;
+    const uniqueCustomers = new Set(approvedSales.map(s => s.customer_email)).size;
 
     // Chart Data Calculation
     const start = dateRange.from || subDays(new Date(), 6);
     const end = dateRange.to || new Date();
     const intervalDays = eachDayOfInterval({ start, end });
 
-    const salesByDay = filteredSales.reduce<Record<string, number>>((acc, sale) => {
-      const day = format(new Date(sale.date), 'yyyy-MM-dd');
-      const saleValue = parseFloat(sale.amount.replace(/[^0-9,-]+/g, "").replace(",", "."));
+    const salesByDay = approvedSales.reduce<Record<string, number>>((acc, sale) => {
+      // Assuming sale_date is a string like '2024-07-27T10:00:00.000Z'
+      const day = format(parseISO(sale.sale_date), 'yyyy-MM-dd');
+      const saleValue = sale.amount_in_cents / 100;
       if (!acc[day]) {
         acc[day] = 0;
       }
@@ -130,7 +128,7 @@ export default function DashboardPage() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <BarChart className="h-5 w-5" />
-            Receita por Dia
+            Receita por Dia (Aprovada)
           </CardTitle>
         </CardHeader>
         <CardContent className="pl-2">
@@ -145,6 +143,7 @@ export default function DashboardPage() {
                 left: 20,
               }}
             >
+              <CartesianGrid vertical={false} />
               <XAxis
                 dataKey="date"
                 tickLine={false}
@@ -152,7 +151,7 @@ export default function DashboardPage() {
                 tickMargin={8}
               />
               <YAxis
-                tickFormatter={(value) => `R$ ${value / 1000}k`}
+                tickFormatter={(value) => `${(Number(value) / 1000).toLocaleString('pt-BR')}k`}
                 tickLine={false}
                 axisLine={false}
                 tickMargin={8}
@@ -160,7 +159,7 @@ export default function DashboardPage() {
               />
               <ChartTooltip
                 cursor={false}
-                content={<ChartTooltipContent indicator="dot" formatter={(value, name, props) => `${props.payload.date}: ${Number(value).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}`}/>}
+                content={<ChartTooltipContent indicator="dot" formatter={(value) => `${Number(value).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}`}/>}
               />
               <Bar dataKey="revenue" fill="var(--color-revenue)" radius={4} />
             </RechartsBarChart>

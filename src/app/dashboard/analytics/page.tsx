@@ -30,23 +30,18 @@ export default function AnalyticsPage() {
     const approvedSales = filteredSales.filter(s => s.status === 'Aprovado');
     const approvedOrders = approvedSales.length;
     
-    const approvedRevenue = approvedSales.reduce((acc, sale) => {
-        return acc + parseFloat(sale.amount.replace(/[^0-9,-]+/g, "").replace(",", "."));
-    }, 0);
-
-    const totalRevenue = filteredSales.reduce((acc, sale) => {
-        return acc + parseFloat(sale.amount.replace(/[^0-9,-]+/g, "").replace(",", "."));
-    }, 0);
+    const approvedRevenue = approvedSales.reduce((acc, sale) => acc + (sale.amount_in_cents / 100), 0);
+    const totalRevenue = filteredSales.reduce((acc, sale) => acc + (sale.amount_in_cents / 100), 0);
 
     const approvalRate = totalOrders > 0 ? ((approvedOrders / totalOrders) * 100).toFixed(1) : '0.0';
     const averageTicket = approvedOrders > 0 ? (approvedRevenue / approvedOrders) : 0;
 
     const productSales = filteredSales.reduce<Record<string, { quantity: number; revenue: number }>>((acc, sale) => {
-        if (!acc[sale.product]) {
-            acc[sale.product] = { quantity: 0, revenue: 0 };
+        if (!acc[sale.product_name]) {
+            acc[sale.product_name] = { quantity: 0, revenue: 0 };
         }
-        acc[sale.product].quantity += 1;
-        acc[sale.product].revenue += parseFloat(sale.amount.replace(/[^0-9,-]+/g, "").replace(",", "."));
+        acc[sale.product_name].quantity += 1;
+        acc[sale.product_name].revenue += (sale.amount_in_cents / 100);
         return acc;
     }, {});
     

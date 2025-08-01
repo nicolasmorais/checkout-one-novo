@@ -1,105 +1,92 @@
 
-"use client";
+'use server';
 
-import { checkPaymentStatus as checkPaymentStatusFlow, CheckPaymentStatusOutput } from "@/ai/flows/check-payment-status-flow";
+import { db, sql } from '@vercel/postgres';
 
-// Define the structure of a sale object
 export interface Sale {
-  id: string; // Internal ID for React keys
-  transactionId: string; // ID from the payment provider
-  name: string;
-  email: string;
-  product: string;
-  amount: string;
-  status: "Aprovado" | "Pendente" | "Reembolsado";
-  pixCode: string;
-  date: Date;
+  id: number;
+  transaction_id: string;
+  customer_name: string;
+  customer_email: string;
+  product_name: string;
+  amount_in_cents: number;
+  status: string;
+  pix_code?: string;
+  sale_date: string;
 }
 
-const SALES_STORAGE_KEY = "firebase-studio-sales";
-
-// IMPORTANT: This service uses localStorage, which is only available in the browser.
-// All data is stored locally on the user's machine and is NOT centralized.
-// This is for demonstration purposes as requested. For a real application,
-// a proper database (like Firestore) should be used.
-
-/**
- * Retrieves the list of sales from localStorage.
- * Returns an empty array if no sales are found or if not in a browser environment.
- * @returns {Sale[]} An array of sale objects.
- */
-export function getSales(): Sale[] {
-  if (typeof window === "undefined") {
-    return [];
-  }
+export async function saveSale(sale: Omit<Sale, 'id' | 'sale_date'>) {
   try {
-    const salesJson = window.localStorage.getItem(SALES_STORAGE_KEY);
-    if (!salesJson) {
-      return [];
-    }
-    // Dates are stored as strings, so we need to convert them back
-    const sales = JSON.parse(salesJson).map((sale: any) => ({
-      ...sale,
-      date: new Date(sale.date),
-    }));
-    return sales.sort((a: Sale, b: Sale) => b.date.getTime() - a.date.getTime());
-  } catch (error) {
-    console.error("Failed to retrieve sales from localStorage", error);
-    return [];
-  }
-}
-
-/**
- * Saves a new sale to the list in localStorage.
- * @param {Sale} newSale The new sale object to save.
- */
-export function saveSale(newSale: Sale): void {
-  if (typeof window === "undefined") {
-    return;
-  }
-  try {
-    const existingSales = getSales();
-    const updatedSales = [newSale, ...existingSales];
-    window.localStorage.setItem(SALES_STORAGE_KEY, JSON.stringify(updatedSales));
-  } catch (error) {
-    console.error("Failed to save sale to localStorage", error);
-  }
-}
-
-
-/**
- * Updates the status of a specific sale in localStorage.
- * @param {string} transactionId The ID of the transaction to update.
- * @param {Sale['status']} newStatus The new status.
- * @returns {Sale[]} The updated list of sales.
- */
-export function updateSaleStatus(transactionId: string, newStatus: Sale['status']): Sale[] {
-    if (typeof window === "undefined") {
-      return [];
-    }
-    try {
-      const existingSales = getSales();
-      const updatedSales = existingSales.map(sale => 
-        sale.transactionId === transactionId ? { ...sale, status: newStatus } : sale
+    // await db.connect(); // connect() is often not needed with modern Vercel Postgres clients
+    await sql`
+      INSERT INTO sales (
+        transaction_id, 
+        customer_name, 
+        customer_email, 
+        product_name, 
+        amount_in_cents, 
+        status, 
+        pix_code
+      ) VALUES (
+        ${sale.transaction_id}, 
+        ${sale.customer_name}, 
+        ${sale.customer_email}, 
+        ${sale.product_name}, 
+        ${sale.amount_in_cents}, 
+        ${sale.status}, 
+        ${sale.pix_code}
       );
-      window.localStorage.setItem(SALES_STORAGE_KEY, JSON.stringify(updatedSales));
-      return updatedSales;
+    `;
+    console.log('Sale saved successfully to Vercel Postgres');
+  } catch (error) {
+    console.error('Error saving sale to Vercel Postgres:', error);
+    throw error;
+  }
+}
+
+/**
+ * Retrieves all sales from the database.
+ * @returns {Promise<Sale[]>} A promise that resolves to an array of sales.
+ */
+export async function getSales(): Promise<Sale[]> {
+    try {
+        const { rows } = await sql`SELECT 
+          id, 
+          transaction_id, 
+          customer_name, 
+          customer_email, 
+          product_name, 
+          amount_in_cents, 
+          status, 
+          pix_code,
+          sale_date::text
+        FROM sales ORDER BY sale_date DESC;`;
+        return rows as Sale[];
     } catch (error) {
-      console.error("Failed to update sale status in localStorage", error);
-      return getSales();
+        console.error('Error fetching sales from Vercel Postgres:', error);
+        throw error;
     }
 }
-  
+
+
 /**
- * Calls the backend flow to check the payment status.
- * @param {string} transactionId The ID of the transaction to check.
- * @returns {Promise<CheckPaymentStatusOutput | null>}
+ * Updates the status of a specific sale in the database.
+ * @param transactionId The ID of the transaction to update.
+ * @param newStatus The new status to set.
+ * @returns {Promise<Sale[]>} A promise that resolves to the updated list of all sales.
  */
-export async function checkSaleStatus(transactionId: string): Promise<CheckPaymentStatusOutput | null> {
+export async function updateSaleStatus(transactionId: string, newStatus: string): Promise<Sale[]> {
     try {
-      return await checkPaymentStatusFlow(transactionId);
+        await sql`
+            UPDATE sales
+            SET status = ${newStatus}
+            WHERE transaction_id = ${transactionId};
+        `;
+        console.log(`Sale status updated for transaction ${transactionId}`);
+        // Return the full updated list of sales
+        return await getSales();
     } catch (error) {
-      console.error("Error calling checkPaymentStatus flow:", error);
-      throw error; // Re-throw the error to be handled by the caller
+        console.error('Error updating sale status in Vercel Postgres:', error);
+        throw error;
     }
 }

@@ -14,22 +14,35 @@ interface GlobalFilterContextType {
   dateRange: DateRange;
   setDateRange: (dateRange: DateRange | undefined) => void;
   sales: Sale[];
-  setSales: (sales: Sale[]) => void;
+  setSales: React.Dispatch<React.SetStateAction<Sale[]>>;
   filteredSales: Sale[];
+  isLoading: boolean;
 }
 
 const GlobalFilterContext = createContext<GlobalFilterContextType | undefined>(undefined);
 
 export const GlobalFilterProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [period, setPeriodState] = useState<Period>('7d');
+  const [period, setPeriodState] = useState<Period>('30d');
   const [dateRange, setDateRangeState] = useState<DateRange>({
-    from: startOfDay(subDays(new Date(), 6)),
+    from: startOfDay(subDays(new Date(), 29)),
     to: endOfDay(new Date()),
   });
   const [sales, setSales] = useState<Sale[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    setSales(getSales());
+    async function fetchSales() {
+        setIsLoading(true);
+        try {
+            const salesData = await getSales();
+            setSales(salesData);
+        } catch (error) {
+            console.error("Failed to fetch sales", error);
+        } finally {
+            setIsLoading(false);
+        }
+    }
+    fetchSales();
   }, []);
 
   const setPeriod = (newPeriod: Period) => {
@@ -72,14 +85,14 @@ export const GlobalFilterProvider: React.FC<{ children: React.ReactNode }> = ({ 
     const toDate = dateRange.to || endOfDay(dateRange.from);
 
     return sales.filter(sale => {
-      const saleDate = new Date(sale.date);
+      const saleDate = new Date(sale.sale_date);
       return saleDate >= fromDate && saleDate <= toDate;
     });
   }, [sales, dateRange]);
 
 
   return (
-    <GlobalFilterContext.Provider value={{ period, setPeriod, dateRange, setDateRange, sales, setSales, filteredSales }}>
+    <GlobalFilterContext.Provider value={{ period, setPeriod, dateRange, setDateRange, sales, setSales, filteredSales, isLoading }}>
       {children}
     </GlobalFilterContext.Provider>
   );

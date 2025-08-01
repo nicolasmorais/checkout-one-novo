@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -24,12 +24,11 @@ import {
     ShoppingCart,
     RefreshCw,
     Loader2,
-    CheckCircle,
     Percent,
     DollarSign,
-    Calendar as CalendarIcon,
 } from "lucide-react";
-import { updateSaleStatus, checkSaleStatus, Sale } from "@/services/sales-service";
+import { updateSaleStatus, Sale } from "@/services/sales-service";
+import { checkPaymentStatus } from "@/ai/flows/check-payment-status-flow";
 import { useToast } from "@/hooks/use-toast";
 import { useGlobalFilter } from "@/contexts/global-filter-context";
 
@@ -45,15 +44,8 @@ export default function SalesPage() {
     const approvedSalesCount = approvedSales.length;
     const approvalRate = totalSales > 0 ? (approvedSalesCount / totalSales) * 100 : 0;
     
-    const totalValue = filteredSales.reduce((acc, sale) => {
-        const value = parseFloat(sale.amount.replace('R$ ', '').replace(',', '.'));
-        return acc + value;
-    }, 0);
-
-    const approvedValue = approvedSales.reduce((acc, sale) => {
-        const value = parseFloat(sale.amount.replace('R$ ', '').replace(',', '.'));
-        return acc + value;
-    }, 0);
+    const totalValue = filteredSales.reduce((acc, sale) => acc + (sale.amount_in_cents / 100), 0);
+    const approvedValue = approvedSales.reduce((acc, sale) => acc + (sale.amount_in_cents / 100), 0);
 
     return {
       totalSales,
@@ -68,9 +60,10 @@ export default function SalesPage() {
   const handleCheckStatus = async (transactionId: string) => {
     setLoadingStates(prev => ({ ...prev, [transactionId]: true }));
     try {
-      const result = await checkSaleStatus(transactionId);
+      const result = await checkPaymentStatus(transactionId);
       if (result && result.status) {
-        const updatedSales = updateSaleStatus(transactionId, result.status as Sale['status']);
+        // The checkPaymentStatus flow now handles the update and returns the new list
+        const updatedSales = await updateSaleStatus(transactionId, result.status);
         setSales(updatedSales);
         toast({
             description: `Status da transação atualizado para: ${result.status}`,
@@ -78,7 +71,7 @@ export default function SalesPage() {
       } else {
         toast({
             variant: "destructive",
-            description: "Não foi possível obter o status da transação.",
+            description: "Não foi possível obter o status da transação. Pode ainda não ter sido paga.",
         });
       }
     } catch (error) {
@@ -139,7 +132,7 @@ export default function SalesPage() {
               <CardTitle>Vendas Recentes ({salesMetrics.totalSales} totais, {salesMetrics.approvedSales} aprovadas)</CardTitle>
           </div>
           <CardDescription>
-            Uma lista das suas vendas mais recentes. (Dados salvos neste navegador)
+            Uma lista das suas vendas mais recentes do banco de dados.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -147,10 +140,10 @@ export default function SalesPage() {
             <TableHeader>
               <TableRow>
                 <TableHead>Cliente</TableHead>
-                <TableHead className="hidden sm:table-cell">ID da Transação</TableHead>
-                <TableHead className="hidden sm:table-cell">Produto</TableHead>
-                <TableHead className="hidden sm:table-cell">Status</TableHead>
-                <TableHead className="hidden md:table-cell">Data</TableHead>
+                <TableHead>ID da Transação</TableHead>
+                <TableHead>Produto</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Data</TableHead>
                 <TableHead className="text-right">Valor</TableHead>
                 <TableHead className="text-right">Ações</TableHead>
               </TableRow>
@@ -162,28 +155,28 @@ export default function SalesPage() {
                   <TableCell>
                     <div className="flex items-center gap-4">
                       <Avatar className="hidden h-9 w-9 sm:flex" data-ai-hint="person avatar">
-                        <AvatarImage src={`https://placehold.co/40x40.png?text=${sale.name.charAt(0)}`} alt="Avatar" />
-                        <AvatarFallback>{sale.name.charAt(0)}</AvatarFallback>
+                        <AvatarImage src={`https://placehold.co/40x40.png?text=${sale.customer_name.charAt(0)}`} alt="Avatar" />
+                        <AvatarFallback>{sale.customer_name.charAt(0)}</AvatarFallback>
                       </Avatar>
                       <div className="grid gap-1">
                         <p className="text-sm font-medium leading-none">
-                          {sale.name}
+                          {sale.customer_name}
                         </p>
                         <p className="text-sm text-muted-foreground">
-                          {sale.email}
+                          {sale.customer_email}
                         </p>
                       </div>
                     </div>
                   </TableCell>
-                  <TableCell className="hidden sm:table-cell">
-                    {sale.transactionId && (
-                      <Badge variant="outline">{sale.transactionId.substring(0, 10)}...</Badge>
+                  <TableCell>
+                    {sale.transaction_id && (
+                      <Badge variant="outline">{sale.transaction_id.substring(0, 10)}...</Badge>
                     )}
                   </TableCell>
-                  <TableCell className="hidden sm:table-cell">
-                    {sale.product}
+                  <TableCell>
+                    {sale.product_name}
                   </TableCell>
-                  <TableCell className="hidden sm:table-cell">
+                  <TableCell>
                     <Badge 
                       className="text-xs" 
                       variant={
@@ -194,19 +187,21 @@ export default function SalesPage() {
                       {sale.status}
                     </Badge>
                   </TableCell>
-                  <TableCell className="hidden md:table-cell">
-                    {new Date(sale.date).toLocaleString('pt-BR')}
+                  <TableCell>
+                    {new Date(sale.sale_date).toLocaleString('pt-BR')}
                   </TableCell>
-                  <TableCell className="text-right">{sale.amount}</TableCell>
                   <TableCell className="text-right">
-                      {sale.transactionId && (
+                    {(sale.amount_in_cents / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                  </TableCell>
+                  <TableCell className="text-right">
+                      {sale.transaction_id && sale.status !== 'Aprovado' && (
                           <Button 
                               variant="ghost" 
                               size="sm" 
-                              onClick={() => handleCheckStatus(sale.transactionId)}
-                              disabled={loadingStates[sale.transactionId]}
+                              onClick={() => handleCheckStatus(sale.transaction_id)}
+                              disabled={loadingStates[sale.transaction_id]}
                           >
-                              {loadingStates[sale.transactionId] ? (
+                              {loadingStates[sale.transaction_id] ? (
                                   <Loader2 className="h-4 w-4 animate-spin" />
                               ) : (
                                   <RefreshCw className="h-4 w-4" />
