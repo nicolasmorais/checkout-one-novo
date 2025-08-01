@@ -25,17 +25,17 @@ export default function GlobalDateFilter() {
 
   const displayDate = () => {
     if (!isMounted || !dateRange?.from) {
-      return <span>Período customizado</span>;
+      return <span>Selecione o período</span>;
     }
     if (dateRange.to) {
       return (
         <>
-          {format(dateRange.from, "LLL dd, y", { locale: ptBR })} -{" "}
-          {format(dateRange.to, "LLL dd, y", { locale: ptBR })}
+          {format(dateRange.from, "dd LLL, y", { locale: ptBR })} -{" "}
+          {format(dateRange.to, "dd LLL, y", { locale: ptBR })}
         </>
       );
     }
-    return format(dateRange.from, "LLL dd, y", { locale: ptBR });
+    return format(dateRange.from, "dd LLL, y", { locale: ptBR });
   };
 
 
@@ -70,7 +70,7 @@ export default function GlobalDateFilter() {
             variant={period === 'custom' ? 'default' : 'outline'}
             size="sm"
             className={cn(
-              "w-[220px] justify-start text-left font-normal",
+              "w-[240px] justify-start text-left font-normal",
               !dateRange && "text-muted-foreground"
             )}
           >
