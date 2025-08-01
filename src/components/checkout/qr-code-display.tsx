@@ -15,11 +15,12 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Copy, Check, TriangleAlert } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
-import { CreatePaymentOutput } from "@/ai/flows/create-payment-flow";
+import { CreatePaymentOutput, createPaymentFlow } from "@/ai/flows/create-payment-flow";
 import { getCheckoutSettings, CheckoutSettings } from "@/services/checkout-settings-service";
 import * as fbq from '@/lib/fpixel';
 import { getMarketingScripts } from "@/services/marketing-service";
 import { Product } from "@/services/products-service";
+import { checkPaymentStatus } from "@/ai/flows/check-payment-status-flow";
 
 interface QrCodeDisplayProps {
   userData: {
@@ -52,6 +53,36 @@ export default function QrCodeDisplay({ userData, product, paymentData, onScanne
       console.error("Could not read from localStorage", error);
     }
   }, [product]);
+
+  useEffect(() => {
+    const paymentId = paymentData.paymentId;
+    if (!paymentId) return;
+
+    const interval = setInterval(async () => {
+      try {
+        console.log('Checking payment status...');
+        const result = await checkPaymentStatus(paymentId);
+        if (result.status === 'approved') {
+          clearInterval(interval);
+          onScanned();
+        }
+      } catch (error) {
+        console.error('Error checking payment status:', error);
+        clearInterval(interval);
+      }
+    }, 3000); // Check every 3 seconds
+
+    const timeout = setTimeout(() => {
+        clearInterval(interval);
+        console.log('Stopped checking payment status after 5 minutes.');
+    }, 300000); // 5 minutes
+
+    return () => {
+      clearInterval(interval);
+      clearTimeout(timeout);
+    }
+  }, [paymentData, onScanned]);
+
 
   const handleCopy = () => {
     navigator.clipboard.writeText(paymentData.pixCode);
@@ -119,4 +150,3 @@ export default function QrCodeDisplay({ userData, product, paymentData, onScanne
     </>
   );
 }
-
