@@ -77,13 +77,9 @@ export default function LandingPage() {
             O checkout que aumenta sua conversão eliminando fricções desnecessárias. Seus clientes estão abandonando o carrinho na hora de pagar? O problema pode ser mais simples do que você imagina.
           </p>
           <div className="mt-8 flex justify-center gap-4">
-            {firstProduct ? (
+            {firstProduct && (
                  <Button asChild size="lg" className="text-lg h-12 px-8 animate-pulse">
                     <Link href={`/${firstProduct.slug}`}>Aumentar Minhas Vendas</Link>
-                </Button>
-            ) : (
-                <Button size="lg" className="text-lg h-12 px-8" disabled>
-                    Nenhum produto disponível
                 </Button>
             )}
           </div>
@@ -178,13 +174,9 @@ export default function LandingPage() {
                     Chega de perder dinheiro com checkout complicado. Junte-se a centenas de vendedores que já aumentaram suas vendas conosco.
                 </p>
                 <div className="mt-8">
-                     {firstProduct ? (
+                     {firstProduct && (
                         <Button asChild size="lg" variant="secondary" className="text-lg h-14 px-10">
                             <Link href={`/${firstProduct.slug}`}>Quero Aumentar Minhas Vendas Agora</Link>
-                        </Button>
-                    ) : (
-                        <Button size="lg" variant="secondary" className="text-lg h-14 px-10" disabled>
-                            Nenhum produto disponível
                         </Button>
                     )}
                 </div>
@@ -202,5 +194,3 @@ export default function LandingPage() {
     </div>
   );
 }
-
-    
