@@ -33,6 +33,7 @@ declare module 'lucide-react' {
     export const Calendar: FC<SVGProps<SVGSVGElement>>;
     export const Lock: FC<SVGProps<SVGSVGElement>>;
     export const Terminal: FC<SVGProps<SVGSVGElement>>;
+    export const Zap: FC<SVGProps<SVGSVGElement>>;
 
   
     // Add other icons as needed, following the same pattern.
