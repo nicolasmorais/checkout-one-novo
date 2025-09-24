@@ -63,8 +63,14 @@ export default function LandingPage() {
 
   return (
     <div className="flex flex-col min-h-screen bg-background">
-      <header className="container mx-auto px-4 py-6">
+      <header className="container mx-auto px-4 py-6 flex justify-between items-center">
          <Logo standalone />
+         <nav className="hidden md:flex gap-8 items-center">
+            <Link href="#problema" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">O Problema</Link>
+            <Link href="#solucao" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">A Solução</Link>
+            <Link href="#depoimentos" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">Depoimentos</Link>
+            <Link href="#comparativo" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">Compare</Link>
+         </nav>
       </header>
 
       <main className="flex-grow container mx-auto px-4 flex flex-col items-center text-center">
@@ -89,7 +95,7 @@ export default function LandingPage() {
         </section>
 
         {/* Problem Section */}
-        <section className="py-16 sm:py-20 w-full">
+        <section id="problema" className="py-16 sm:py-20 w-full">
            <div className="text-center mb-12">
                 <h2 className="text-3xl font-bold tracking-tighter">O Problema Que Todo Vendedor Conhece</h2>
            </div>
@@ -107,7 +113,7 @@ export default function LandingPage() {
         </section>
 
         {/* Solution Section */}
-        <section className="py-20 sm:py-24 w-full">
+        <section id="solucao" className="py-20 sm:py-24 w-full">
            <div className="text-center mb-12">
                 <h2 className="text-3xl font-bold tracking-tighter">Nossa Solução: <span className="text-primary">Checkout Sem Fricção</span></h2>
            </div>
@@ -127,7 +133,7 @@ export default function LandingPage() {
         </section>
 
         {/* Testimonials Section */}
-        <section className="py-16 sm:py-20 w-full bg-secondary rounded-xl">
+        <section id="depoimentos" className="py-16 sm:py-20 w-full bg-secondary rounded-xl">
            <div className="text-center mb-12">
                 <h2 className="text-3xl font-bold tracking-tighter">O Que Nossos Clientes Dizem</h2>
            </div>
@@ -143,7 +149,7 @@ export default function LandingPage() {
         </section>
 
         {/* Comparison Section */}
-        <section className="py-20 smpy-24 w-full">
+        <section id="comparativo" className="py-20 smpy-24 w-full">
             <div className="text-center mb-12">
                 <h2 className="text-3xl font-bold tracking-tighter">Compare e Decida</h2>
             </div>
