@@ -38,7 +38,7 @@ export default function QrCodeDisplay({ userData, product, paymentData, onScanne
   const [isCheckingPayment, setIsCheckingPayment] = useState(true);
   const { toast } = useToast();
 
-  const onScannedCallback = useCallback(onScanned, []);
+  const onScannedCallback = useCallback(onScanned, [onScanned]);
 
   useEffect(() => {
     try {
@@ -49,11 +49,10 @@ export default function QrCodeDisplay({ userData, product, paymentData, onScanne
               currency: 'BRL',
               value: product.value,
               content_name: product.name,
-              payment_type: 'PIX'
           });
       }
     } catch (error) {
-      console.error("Could not read from localStorage", error);
+      console.error("Could not read from localStorage or send event", error);
     }
   }, [product]);
 

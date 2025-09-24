@@ -184,4 +184,3 @@ export default function PersonalInfoForm({ product, onSubmit, isLoading }: Perso
     </>
   );
 }
-

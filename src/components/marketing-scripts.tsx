@@ -20,9 +20,6 @@ export default function MarketingScripts({ location }: MarketingScriptsProps) {
         const loadScripts = () => {
             const loadedScripts = getMarketingScripts();
             setScripts(loadedScripts);
-            if (loadedScripts.facebook_pixel_id) {
-                fbq.init(loadedScripts.facebook_pixel_id);
-            }
         };
         
         loadScripts();
@@ -30,6 +27,7 @@ export default function MarketingScripts({ location }: MarketingScriptsProps) {
         return () => window.removeEventListener('marketingScriptsUpdated', loadScripts);
     }, []);
 
+    // Track PageView on route change
     useEffect(() => {
         if (!scripts?.facebook_pixel_id) return;
         fbq.pageview();
@@ -43,8 +41,13 @@ export default function MarketingScripts({ location }: MarketingScriptsProps) {
                 {scripts.gtm_head && <script dangerouslySetInnerHTML={{ __html: scripts.gtm_head }} />}
                 {scripts.facebook_pixel_id && (
                      <Script
-                        id="fb-pixel"
+                        id="fb-pixel-base"
                         strategy="afterInteractive"
+                        onLoad={() => {
+                            if (scripts.facebook_pixel_id) {
+                                fbq.init(scripts.facebook_pixel_id);
+                            }
+                        }}
                         dangerouslySetInnerHTML={{
                         __html: `
                             !function(f,b,e,v,n,t,s)
@@ -55,8 +58,6 @@ export default function MarketingScripts({ location }: MarketingScriptsProps) {
                             t.src=v;s=b.getElementsByTagName(e)[0];
                             s.parentNode.insertBefore(t,s)}(window, document,'script',
                             'https://connect.facebook.net/en_US/fbevents.js');
-                            fbq('init', '${scripts.facebook_pixel_id}');
-                            fbq('track', 'PageView');
                         `,
                         }}
                     />
