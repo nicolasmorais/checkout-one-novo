@@ -71,6 +71,9 @@ export default function LandingPage() {
             <Link href="#depoimentos" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">Depoimentos</Link>
             <Link href="#comparativo" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">Compare</Link>
          </nav>
+          <Button asChild variant="outline">
+            <Link href="/login">Login</Link>
+          </Button>
       </header>
 
       <main className="flex-grow container mx-auto px-4 flex flex-col items-center text-center">
@@ -203,3 +206,5 @@ export default function LandingPage() {
     </div>
   );
 }
+
+    
