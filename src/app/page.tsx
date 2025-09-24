@@ -77,16 +77,19 @@ export default function LandingPage() {
             O checkout que aumenta sua conversão eliminando fricções desnecessárias. Seus clientes estão abandonando o carrinho na hora de pagar? O problema pode ser mais simples do que você imagina.
           </p>
           <div className="mt-8 flex justify-center gap-4">
-            {firstProduct && (
+            {firstProduct ? (
                  <Button asChild size="lg" className="text-lg h-12 px-8 animate-pulse">
                     <Link href={`/${firstProduct.slug}`}>Aumentar Minhas Vendas</Link>
                 </Button>
+            ): (
+                <div className="mt-8">
+                </div>
             )}
           </div>
         </section>
 
         {/* Problem Section */}
-        <section className="py-16 sm:py-20 w-full bg-secondary rounded-xl">
+        <section className="py-16 sm:py-20 w-full">
            <div className="text-center mb-12">
                 <h2 className="text-3xl font-bold tracking-tighter">O Problema Que Todo Vendedor Conhece</h2>
            </div>
@@ -140,7 +143,7 @@ export default function LandingPage() {
         </section>
 
         {/* Comparison Section */}
-        <section className="py-20 sm:py-24 w-full">
+        <section className="py-20 smpy-24 w-full">
             <div className="text-center mb-12">
                 <h2 className="text-3xl font-bold tracking-tighter">Compare e Decida</h2>
             </div>
