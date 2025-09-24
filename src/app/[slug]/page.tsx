@@ -26,7 +26,7 @@ const DEFAULT_PRODUCT: Omit<Product, 'id' | 'slug'> = {
   name: "Produto Padrão",
   description: "Acesso ao item selecionado",
   value: 9.90,
-  bannerUrl: "https://placehold.co/600x150.png",
+  bannerUrl: "https://placehold.co/600x400.png",
   logoUrl: "https://placehold.co/80x80.png"
 };
 
@@ -137,13 +137,13 @@ export default function CheckoutPageContent({ params }: { params: { slug: string
     <div className="flex flex-col min-h-screen">
       <main className="flex-grow flex w-full flex-col items-center bg-background p-4 font-body">
         <div className="w-full max-w-md">
-          <div className="relative w-full mb-4 aspect-video">
-            <Image
+          <div className="relative w-full mb-4">
+             <Image
               src={product.bannerUrl}
               alt="Banner"
-              layout="fill"
-              objectFit="cover"
-              className="rounded-md"
+              width={600} 
+              height={400}
+              className="rounded-md w-full h-auto"
               data-ai-hint="advertisement banner"
               unoptimized
               priority

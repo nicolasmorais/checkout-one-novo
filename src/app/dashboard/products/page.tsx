@@ -75,7 +75,7 @@ export default function ProductsPage() {
       name: "",
       description: "",
       value: 0,
-      bannerUrl: "https://placehold.co/600x150.png",
+      bannerUrl: "https://placehold.co/600x400.png",
       logoUrl: "https://placehold.co/80x80.png",
     },
   });
