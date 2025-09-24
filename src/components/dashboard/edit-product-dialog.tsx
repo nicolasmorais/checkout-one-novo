@@ -132,7 +132,7 @@ export default function EditProductDialog({
                 name="bannerUrl"
                 render={({ field }) => (
                 <FormItem>
-                    <FormLabel>URL do Banner (600x150)</FormLabel>
+                    <FormLabel>URL da Imagem do Banner</FormLabel>
                     <FormControl>
                     <Input {...field} />
                     </FormControl>
@@ -145,7 +145,7 @@ export default function EditProductDialog({
                 name="logoUrl"
                 render={({ field }) => (
                 <FormItem>
-                    <FormLabel>URL da Logo (80x80)</FormLabel>
+                    <FormLabel>URL da Imagem da Logo</FormLabel>
                     <FormControl>
                     <Input {...field} />
                     </FormControl>

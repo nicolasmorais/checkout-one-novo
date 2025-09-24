@@ -230,7 +230,7 @@ export default function ProductsPage() {
                         name="bannerUrl"
                         render={({ field }) => (
                         <FormItem>
-                            <FormLabel>URL do Banner (600x150)</FormLabel>
+                            <FormLabel>URL da Imagem do Banner</FormLabel>
                             <FormControl>
                             <Input placeholder="https://..." {...field} />
                             </FormControl>
@@ -243,7 +243,7 @@ export default function ProductsPage() {
                         name="logoUrl"
                         render={({ field }) => (
                         <FormItem>
-                            <FormLabel>URL da Logo (80x80)</FormLabel>
+                            <FormLabel>URL da Imagem da Logo</FormLabel>
                             <FormControl>
                             <Input placeholder="https://..." {...field} />
                             </FormControl>

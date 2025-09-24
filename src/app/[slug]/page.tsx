@@ -137,16 +137,18 @@ export default function CheckoutPageContent({ params }: { params: { slug: string
     <div className="flex flex-col min-h-screen">
       <main className="flex-grow flex w-full flex-col items-center bg-background p-4 font-body">
         <div className="w-full max-w-md">
-          <Image
-            src={product.bannerUrl}
-            alt="Banner"
-            width={600}
-            height={150}
-            className="mb-4 w-full rounded-md"
-            data-ai-hint="advertisement banner"
-            unoptimized
-            priority
-          />
+          <div className="relative w-full mb-4 aspect-video">
+            <Image
+              src={product.bannerUrl}
+              alt="Banner"
+              layout="fill"
+              objectFit="cover"
+              className="rounded-md"
+              data-ai-hint="advertisement banner"
+              unoptimized
+              priority
+            />
+          </div>
           <div className="mb-4 flex items-center justify-center gap-2 rounded-md bg-primary p-3 text-primary-foreground">
             <ShieldCheck />
             <span className="font-bold">COMPRA 100% SEGURA</span>
