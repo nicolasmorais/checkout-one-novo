@@ -12,7 +12,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Copy, Check, TriangleAlert, Loader2, QrCode } from "lucide-react";
+import { Copy, Check, TriangleAlert, Loader2, QrCode, MailCheck } from "lucide-react";
 import { useState, useEffect, useCallback } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { CreatePaymentOutput } from "@/ai/flows/create-payment-flow";
@@ -120,6 +120,12 @@ export default function QrCodeDisplay({ userData, product, paymentData, onScanne
           </CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col items-center gap-4">
+            <div className="flex items-center gap-2 p-3 rounded-md bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 w-full text-sm">
+                <MailCheck className="h-5 w-5 shrink-0" />
+                <p className="flex-1">
+                    Ao confirmar, o acesso ao <strong>{product.name}</strong> será enviado para <strong>{userData.email}</strong>.
+                </p>
+            </div>
            {showQrCode && (
              <div className="p-4 bg-white rounded-lg border animate-in fade-in duration-300">
                 <Image

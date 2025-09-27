@@ -36,6 +36,7 @@ declare module 'lucide-react' {
     export const Zap: FC<SVGProps<SVGSVGElement>>;
     export const X: FC<SVGProps<SVGSVGElement>>;
     export const QrCode: FC<SVGProps<SVGSVGElement>>;
+    export const MailCheck: FC<SVGProps<SVGSVGElement>>;
 
   
     // Add other icons as needed, following the same pattern.
@@ -43,3 +44,4 @@ declare module 'lucide-react' {
   
 
     
+
