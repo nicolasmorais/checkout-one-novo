@@ -54,12 +54,12 @@ export async function createProductsTable() {
  */
 export async function getProducts(): Promise<Product[]> {
   try {
-    const { rows } = await sql<Product>`SELECT id, slug, name, description, value, logo_url AS "logoUrl", checkout_image_urls AS "checkoutImageUrls", reviews FROM products;`;
+    const { rows } = await sql<any>`SELECT id, slug, name, description, value, logo_url AS "logoUrl", checkout_image_urls AS "checkoutImageUrls", reviews FROM products ORDER BY id DESC;`;
     return rows.map(row => ({
       ...row,
       id: String(row.id), // Ensure id is string
       value: Number(row.value), // Ensure value is number
-      reviews: row.reviews ? JSON.parse(row.reviews as string) : []
+      reviews: row.reviews || [] // The driver already parses JSONB
     }));
   } catch (error) {
     console.error('Error fetching products from Vercel Postgres:', error);
@@ -68,20 +68,20 @@ export async function getProducts(): Promise<Product[]> {
 }
 
 /**
- * Salva um novo produto no banco de dados. Aqui assumimos que reviews são gerados default
- * @param {Omit<Product, 'id' | 'reviews'>} productData Os dados do novo produto.
+ * Salva um novo produto no banco de dados.
+ * @param {Omit<Product, 'id' | 'slug'>} productData Os dados do novo produto.
  * @returns {Promise<Product>} O objeto Product completo com o ID gerado.
  */
-export async function saveProduct(productData: Omit<Product, 'id' | 'reviews'>): Promise<Product> {
+export async function saveProduct(productData: Omit<Product, 'id' | 'slug'>): Promise<Product> {
   try {
     const newSlug = generateSlug(productData.name);
-    const defaultReviews: Review[] = [
+    // Assign default reviews if they don't exist, as per previous logic.
+    const reviewsToSave = productData.reviews && productData.reviews.length > 0 ? productData.reviews : [
       { id: '1', name: 'Maria S.', text: '“Transformou meu negócio! Os criativos que aprendi a fazer aqui geraram um ROI de 5x em menos de 30 dias. Essencial para quem quer escalar.”', rating: 5, avatarUrl: 'https://placehold.co/40x40.png' },
       { id: '2', name: 'João P.', text: '“Didática incrível e conteúdo direto ao ponto. Consegui aplicar as técnicas no mesmo dia e já vi um aumento significativo no engajamento.”', rating: 5, avatarUrl: 'https://placehold.co/40x40.png' },
     ];
-    const reviewsJson = JSON.stringify(defaultReviews);
-
-    const { rows } = await sql<Product>`
+    
+    const { rows } = await sql<any>`
       INSERT INTO products (
         slug,
         name,
@@ -97,16 +97,16 @@ export async function saveProduct(productData: Omit<Product, 'id' | 'reviews'>):
         ${productData.value},
         ${productData.logoUrl || null},
         ${productData.checkoutImageUrls || []}::TEXT[],
-        ${reviewsJson}::JSONB
+        ${JSON.stringify(reviewsToSave)}::JSONB
       )
       RETURNING id, slug, name, description, value, logo_url AS "logoUrl", checkout_image_urls AS "checkoutImageUrls", reviews;
     `;
     const newProduct = rows[0];
     return {
       ...newProduct,
-      id: String(newProduct.id), // Ensure id is string
-      value: Number(newProduct.value), // Ensure value is number
-      reviews: newProduct.reviews ? JSON.parse(newProduct.reviews as string) : []
+      id: String(newProduct.id),
+      value: Number(newProduct.value),
+      reviews: newProduct.reviews || []
     };
   } catch (error) {
     console.error('Error saving product to Vercel Postgres:', error);
@@ -116,12 +116,12 @@ export async function saveProduct(productData: Omit<Product, 'id' | 'reviews'>):
 
 /**
  * Encontra um produto pelo seu slug no banco de dados.
- * @param {string} slug O slug do produto a ser encontrado. Aqui ele será sempre uma string, não undefined.
+ * @param {string} slug O slug do produto a ser encontrado.
  * @returns {Promise<Product | undefined>} O produto encontrado ou undefined.
  */
 export async function getProductBySlug(slug: string): Promise<Product | undefined> {
   try {
-    const { rows } = await sql<Product>`
+    const { rows } = await sql<any>`
       SELECT id, slug, name, description, value, logo_url AS "logoUrl", checkout_image_urls AS "checkoutImageUrls", reviews
       FROM products
       WHERE slug = ${slug};
@@ -132,7 +132,7 @@ export async function getProductBySlug(slug: string): Promise<Product | undefine
         ...product,
         id: String(product.id),
         value: Number(product.value),
-        reviews: product.reviews ? JSON.parse(product.reviews as string) : []
+        reviews: product.reviews || []
       };
     }
     return undefined;
@@ -149,8 +149,7 @@ export async function getProductBySlug(slug: string): Promise<Product | undefine
  */
 export async function updateProduct(updatedProduct: Product): Promise<Product> {
   try {
-    const reviewsJson = JSON.stringify(updatedProduct.reviews);
-    const { rows } = await sql<Product>`
+    const { rows } = await sql<any>`
       UPDATE products
       SET
         name = ${updatedProduct.name},
@@ -158,7 +157,7 @@ export async function updateProduct(updatedProduct: Product): Promise<Product> {
         value = ${updatedProduct.value},
         logo_url = ${updatedProduct.logoUrl || null},
         checkout_image_urls = ${updatedProduct.checkoutImageUrls || []}::TEXT[],
-        reviews = ${reviewsJson}::JSONB
+        reviews = ${JSON.stringify(updatedProduct.reviews || [])}::JSONB
       WHERE id = ${updatedProduct.id}
       RETURNING id, slug, name, description, value, logo_url AS "logoUrl", checkout_image_urls AS "checkoutImageUrls", reviews;
     `;
@@ -167,7 +166,7 @@ export async function updateProduct(updatedProduct: Product): Promise<Product> {
         ...product,
         id: String(product.id),
         value: Number(product.value),
-        reviews: product.reviews ? JSON.parse(product.reviews as string) : []
+        reviews: product.reviews || []
     };
   } catch (error) {
     console.error('Error updating product in Vercel Postgres:', error);

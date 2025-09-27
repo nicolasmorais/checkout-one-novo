@@ -65,14 +65,30 @@ type ProductFormData = z.infer<typeof formSchema>;
 export default function ProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingProducts, setIsLoadingProducts] = useState(true);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteAlertOpen, setIsDeleteAlertOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
-    setProducts(getProducts());
-  }, []);
+    async function loadProducts() {
+      setIsLoadingProducts(true);
+      try {
+        const fetchedProducts = await getProducts();
+        setProducts(fetchedProducts);
+      } catch (error) {
+        toast({
+          variant: "destructive",
+          title: "Erro ao Carregar Produtos",
+          description: "Não foi possível buscar a lista de produtos.",
+        });
+      } finally {
+        setIsLoadingProducts(false);
+      }
+    }
+    loadProducts();
+  }, [toast]);
 
   const form = useForm<ProductFormData>({
     resolver: zodResolver(formSchema),
@@ -90,24 +106,25 @@ export default function ProductsPage() {
     name: "checkoutImageUrls",
   });
 
-  const handleAddProduct = (data: ProductFormData) => {
+  const handleAddProduct = async (data: ProductFormData) => {
     setIsLoading(true);
     try {
-      const newProduct: Omit<Product, 'id' | 'slug'> = {
+      const newProductData: Omit<Product, 'id' | 'slug'> = {
         name: data.name,
         description: data.description,
         value: data.value,
         logoUrl: data.logoUrl,
         checkoutImageUrls: data.checkoutImageUrls.map(item => item.url).filter(Boolean),
-        reviews: [], // Will be populated with default reviews by saveProduct
+        reviews: [], // Server will add default reviews
       };
-      const savedProduct = saveProduct(newProduct);
+      const savedProduct = await saveProduct(newProductData);
       setProducts(currentProducts => [savedProduct, ...currentProducts]);
       toast({
         title: "Produto Adicionado!",
         description: `O produto "${data.name}" foi salvo com sucesso.`,
       });
       form.reset();
+      remove(); // Clear image URL fields
     } catch (error) {
       toast({
         variant: "destructive",
@@ -137,11 +154,11 @@ export default function ProductsPage() {
     setIsDeleteAlertOpen(true);
   };
 
-  const handleUpdateProduct = (updatedData: Product) => {
+  const handleUpdateProduct = async (updatedData: Product) => {
     try {
-      updateProduct(updatedData);
+      const updatedProduct = await updateProduct(updatedData);
       setProducts(currentProducts =>
-        currentProducts.map(p => (p.id === updatedData.id ? updatedData : p))
+        currentProducts.map(p => (p.id === updatedProduct.id ? updatedProduct : p))
       );
       toast({
         title: "Produto Atualizado!",
@@ -157,10 +174,10 @@ export default function ProductsPage() {
     }
   };
 
-  const handleDeleteProduct = () => {
+  const handleDeleteProduct = async () => {
     if (!selectedProduct) return;
     try {
-        deleteProduct(selectedProduct.id);
+        await deleteProduct(selectedProduct.id);
         setProducts(currentProducts =>
             currentProducts.filter(p => p.id !== selectedProduct.id)
         );
@@ -323,7 +340,13 @@ export default function ProductsPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {products.length > 0 ? (
+                {isLoadingProducts ? (
+                   <TableRow>
+                    <TableCell colSpan={4} className="text-center">
+                      <Loader2 className="mx-auto h-6 w-6 animate-spin" />
+                    </TableCell>
+                  </TableRow>
+                ) : products.length > 0 ? (
                   products.map((product) => (
                     <TableRow key={product.id}>
                       <TableCell className="font-medium">{product.name}</TableCell>
@@ -364,7 +387,7 @@ export default function ProductsPage() {
                   ))
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={5} className="text-center">
+                    <TableCell colSpan={4} className="text-center">
                       Nenhum produto cadastrado ainda.
                     </TableCell>
                   </TableRow>

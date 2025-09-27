@@ -55,10 +55,13 @@ export default function LandingPage() {
     const [firstProduct, setFirstProduct] = useState<Product | null>(null);
 
     useEffect(() => {
-        const products = getProducts();
-        if (products.length > 0) {
-            setFirstProduct(products[0]);
-        }
+        const fetchProducts = async () => {
+            const products = await getProducts();
+            if (products.length > 0) {
+                setFirstProduct(products[0]);
+            }
+        };
+        fetchProducts();
     }, []);
 
   return (
@@ -206,5 +209,3 @@ export default function LandingPage() {
     </div>
   );
 }
-
-    
