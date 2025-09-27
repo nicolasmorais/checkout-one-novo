@@ -54,6 +54,7 @@ export default function MarketingPage() {
   });
 
   useEffect(() => {
+    // Load client-side data in useEffect to prevent hydration errors
     const scripts = getMarketingScripts();
     form.reset(scripts);
   }, [form]);
@@ -174,4 +175,3 @@ export default function MarketingPage() {
     </div>
   );
 }
-

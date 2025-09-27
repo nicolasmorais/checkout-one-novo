@@ -8,10 +8,13 @@ const ADMIN_PASSWORD = "admin";
 
 /**
  * Checks if the user is authenticated by looking for a token in sessionStorage.
+ * This function should only be called on the client side.
  * @returns {boolean} True if authenticated, false otherwise.
  */
 export function isAuthenticated(): boolean {
     if (typeof window === "undefined") {
+        // Cannot determine auth state on the server.
+        // The component logic should handle this, e.g., by showing a loading state.
         return false;
     }
     return window.sessionStorage.getItem(AUTH_TOKEN_KEY) === "true";

@@ -81,32 +81,36 @@ export default function PersonalizacaoPage() {
   const { toast } = useToast();
 
   const footerForm = useFooterForm<FooterData>({
-      defaultValues: getFooterData()
+      defaultValues: {
+        securePurchaseTitle: "",
+        protectedDataTitle: "",
+        companyName: "",
+        cnpj: "",
+        address: "",
+        contactEmail: "",
+        copyright: "",
+        termsUrl: "",
+        privacyUrl: ""
+      }
   });
 
   const checkoutSettingsForm = useForm<CheckoutSettings>({
-      defaultValues: getCheckoutSettings()
+      defaultValues: { showAlert: false, alertMessage: "" }
   });
 
   const siteSettingsForm = useForm<SiteSettingsFormData>({
       resolver: zodResolver(siteSettingsSchema),
-      defaultValues: getSiteSettings()
+      defaultValues: { siteName: "", faviconUrl: "", sidebarLogoUrl: "" }
   })
 
   useEffect(() => {
-    // Load theme color
+    // Load data on the client side to avoid hydration mismatch
     const savedColor = localStorage.getItem(PRIMARY_COLOR_STORAGE_KEY);
     if (savedColor) setPrimaryColor(savedColor);
     
-    // Load checkout alert settings
     checkoutSettingsForm.reset(getCheckoutSettings());
-
-    // Load footer data
     footerForm.reset(getFooterData());
-
-    // Load site settings
     siteSettingsForm.reset(getSiteSettings());
-
   }, [footerForm, checkoutSettingsForm, siteSettingsForm]);
 
   const previewStyle: React.CSSProperties = {

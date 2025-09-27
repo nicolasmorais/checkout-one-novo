@@ -42,18 +42,15 @@ export default function QrCodeDisplay({ userData, product, paymentData, onScanne
   const onScannedCallback = useCallback(onScanned, [onScanned]);
 
   useEffect(() => {
-    try {
-      setSettings(getCheckoutSettings());
-      const scripts = getMarketingScripts();
-      if (scripts.facebook_pixel_id) {
-          fbq.event('Purchase', {
-              currency: 'BRL',
-              value: product.value,
-              content_name: product.name,
-          });
-      }
-    } catch (error) {
-      console.error("Could not read from localStorage or send event", error);
+    // Client-side only effects
+    setSettings(getCheckoutSettings());
+    const scripts = getMarketingScripts();
+    if (scripts.facebook_pixel_id) {
+        fbq.event('Purchase', {
+            currency: 'BRL',
+            value: product.value,
+            content_name: product.name,
+        });
     }
   }, [product]);
 
@@ -126,10 +123,7 @@ export default function QrCodeDisplay({ userData, product, paymentData, onScanne
                     Após aprovação, seu acesso ao <strong>{product.name}</strong> será enviado para <strong>{userData.email}</strong>.
                 </p>
             </div>
-            <div className="w-full text-center font-mono text-sm overflow-hidden text-ellipsis whitespace-nowrap p-3 mb-2 bg-gray-50 dark:bg-gray-800/50 rounded-md border border-dashed">
-            {paymentData.pixCode}
-          </div>
-           <div className="text-sm text-muted-foreground text-left space-y-2 p-4 bg-gray-50 dark:bg-gray-800/50 rounded-md border w-full">
+             <div className="text-sm text-muted-foreground text-left space-y-2 p-4 bg-gray-50 dark:bg-gray-800/50 rounded-md border w-full">
               <p className="font-bold">Como pagar com Pix:</p>
               <ol className="list-decimal list-inside space-y-1">
                 <li>Abra o app do seu banco e escolha a opção Pix.</li>
@@ -138,6 +132,9 @@ export default function QrCodeDisplay({ userData, product, paymentData, onScanne
                 <li>Pronto! Pagamento aprovado na hora.</li>
               </ol>
             </div>
+            <div className="w-full text-center font-mono text-sm overflow-hidden text-ellipsis whitespace-nowrap p-3 mb-2 bg-gray-50 dark:bg-gray-800/50 rounded-md border border-dashed">
+            {paymentData.pixCode}
+          </div>
            {showQrCode && (
              <div className="p-4 bg-white rounded-lg border animate-in fade-in duration-300">
                 <Image

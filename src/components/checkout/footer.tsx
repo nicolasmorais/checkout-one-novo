@@ -13,15 +13,18 @@ export default function Footer() {
       setFooterData(getFooterData());
     };
 
-    loadData();
+    loadData(); // Load on mount
 
-    // Listen for storage changes to update in real-time
-    window.addEventListener('storage', loadData);
-    window.addEventListener('footerChanged', loadData);
+    const handleStorageChange = () => loadData();
+
+    // Listen for changes from other tabs
+    window.addEventListener('storage', handleStorageChange);
+    // Listen for changes from the personalization page
+    window.addEventListener('footerChanged', handleStorageChange);
 
     return () => {
-      window.removeEventListener('storage', loadData);
-      window.removeEventListener('footerChanged', loadData);
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('footerChanged', handleStorageChange);
     };
   }, []);
 
@@ -29,7 +32,8 @@ export default function Footer() {
     return (
       <footer className="w-full bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 py-8">
         <div className="container mx-auto px-4 max-w-md text-center">
-            <div className="h-24"></div> {/* Placeholder for height */}
+            {/* Placeholder to prevent layout shift */}
+            <div className="h-24" />
         </div>
       </footer>
     );

@@ -77,7 +77,6 @@ export default function PersonalInfoForm({ product, onSubmit, isLoading }: Perso
 
   return (
     <>
-      <div className="w-full max-w-md">
         {product.checkoutImageUrls && product.checkoutImageUrls.length > 0 && (
             <div className="flex flex-col w-full mb-4">
                  {product.checkoutImageUrls.map((url, index) => (
@@ -98,7 +97,6 @@ export default function PersonalInfoForm({ product, onSubmit, isLoading }: Perso
             <ShieldCheck />
             <span className="font-bold">COMPRA 100% SEGURA</span>
         </div>
-      </div>
       <Card className="w-full max-w-md shadow-lg">
         <CardHeader className="p-4">
           <div className="flex items-start gap-4">

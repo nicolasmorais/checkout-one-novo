@@ -13,8 +13,9 @@ interface LogoProps {
 }
 
 export default function Logo({ standalone = false }: LogoProps) {
-  const { state } = !standalone ? useSidebar() : { state: 'expanded' };
-  const [logoUrl, setLogoUrl] = useState<string>("");
+  const sidebarContext = !standalone ? useSidebar() : null;
+  const state = sidebarContext?.state || 'expanded';
+  const [logoUrl, setLogoUrl] = useState<string | null>(null);
 
   useEffect(() => {
     const updateLogo = () => {
@@ -27,6 +28,11 @@ export default function Logo({ standalone = false }: LogoProps) {
   }, []);
   
   const isCollapsed = !standalone && state === "collapsed";
+
+  // Don't render until logoUrl has been determined on the client
+  if (logoUrl === null && !standalone) {
+      return null;
+  }
 
   return (
     <div className={cn("flex items-center justify-start", isCollapsed ? "h-10 w-10 justify-center" : "h-10 w-auto")}>
