@@ -123,8 +123,20 @@ export default function QrCodeDisplay({ userData, product, paymentData, onScanne
             <div className="flex items-center gap-2 p-3 rounded-md bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 w-full text-sm">
                 <MailCheck className="h-5 w-5 shrink-0" />
                 <p className="flex-1">
-                    Ao confirmar, o acesso ao <strong>{product.name}</strong> será enviado para <strong>{userData.email}</strong>.
+                    Após aprovação, seu acesso ao <strong>{product.name}</strong> será enviado para <strong>{userData.email}</strong>.
                 </p>
+            </div>
+            <div className="w-full text-center font-mono text-sm overflow-hidden text-ellipsis whitespace-nowrap p-3 mb-2 bg-gray-50 dark:bg-gray-800/50 rounded-md border border-dashed">
+            {paymentData.pixCode}
+          </div>
+           <div className="text-sm text-muted-foreground text-left space-y-2 p-4 bg-gray-50 dark:bg-gray-800/50 rounded-md border w-full">
+              <p className="font-bold">Como pagar com Pix:</p>
+              <ol className="list-decimal list-inside space-y-1">
+                <li>Abra o app do seu banco e escolha a opção Pix.</li>
+                <li>Escaneie o QR Code ou use o código do "Copia e Cola".</li>
+                <li>Confirme os dados e o valor.</li>
+                <li>Pronto! Pagamento aprovado na hora.</li>
+              </ol>
             </div>
            {showQrCode && (
              <div className="p-4 bg-white rounded-lg border animate-in fade-in duration-300">
@@ -138,18 +150,6 @@ export default function QrCodeDisplay({ userData, product, paymentData, onScanne
                 />
             </div>
            )}
-            <div className="text-sm text-muted-foreground text-left space-y-2 p-4 bg-gray-50 dark:bg-gray-800/50 rounded-md border w-full">
-              <p className="font-bold">Como pagar com Pix:</p>
-              <ol className="list-decimal list-inside space-y-1">
-                <li>Abra o app do seu banco e escolha a opção Pix.</li>
-                <li>Escaneie o QR Code ou use o código do "Copia e Cola".</li>
-                <li>Confirme os dados e o valor.</li>
-                <li>Pronto! Pagamento aprovado na hora.</li>
-              </ol>
-            </div>
-           <div className="w-full text-center font-mono text-sm overflow-hidden text-ellipsis whitespace-nowrap p-3 mb-2 bg-gray-50 dark:bg-gray-800/50 rounded-md border border-dashed">
-            {paymentData.pixCode}
-          </div>
           <Button onClick={handleCopy} className="w-full">
             {isCopied ? <Check className="mr-2 h-4 w-4 text-green-500" /> : <Copy className="mr-2 h-4 w-4" />}
             {isCopied ? "Copiado!" : "Copiar Código Pix"}
