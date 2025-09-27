@@ -132,6 +132,15 @@ export default function QrCodeDisplay({ userData, product, paymentData, onScanne
                 />
             </div>
            )}
+            <div className="text-sm text-muted-foreground text-left space-y-2 p-4 bg-gray-50 dark:bg-gray-800/50 rounded-md border w-full">
+              <p className="font-bold">Como pagar com Pix:</p>
+              <ol className="list-decimal list-inside space-y-1">
+                <li>Abra o app do seu banco e escolha a opção Pix.</li>
+                <li>Escaneie o QR Code ou use o código do "Copia e Cola".</li>
+                <li>Confirme os dados e o valor.</li>
+                <li>Pronto! Pagamento aprovado na hora.</li>
+              </ol>
+            </div>
            <div className="w-full text-center font-mono text-sm break-all p-3 mb-2 bg-gray-50 dark:bg-gray-800/50 rounded-md border border-dashed">
             {paymentData.pixCode}
           </div>
@@ -143,15 +152,6 @@ export default function QrCodeDisplay({ userData, product, paymentData, onScanne
               <QrCode className="mr-2 h-4 w-4" />
               {showQrCode ? "Esconder QR Code" : "Mostrar QR Code"}
           </Button>
-          <div className="text-sm text-muted-foreground text-left space-y-2 p-4 bg-gray-50 dark:bg-gray-800/50 rounded-md border">
-            <p className="font-bold">Como pagar com Pix:</p>
-            <ol className="list-decimal list-inside space-y-1">
-              <li>Abra o app do seu banco e escolha a opção Pix.</li>
-              <li>Escaneie o QR Code ou use o código do "Copia e Cola".</li>
-              <li>Confirme os dados e o valor.</li>
-              <li>Pronto! Pagamento aprovado na hora.</li>
-            </ol>
-          </div>
           <p className="text-sm text-muted-foreground">
             Este QR code expira em 5 minutos.
           </p>
