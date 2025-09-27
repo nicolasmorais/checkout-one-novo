@@ -51,7 +51,6 @@ const formSchema = z.object({
   name: z.string().min(3, "O nome deve ter pelo menos 3 caracteres."),
   description: z.string().min(3, "A descrição deve ter pelo menos 3 caracteres."),
   value: z.coerce.number().positive("O valor deve ser um número positivo."),
-  bannerUrl: z.string().url("URL inválida").optional().or(z.literal('')),
   logoUrl: z.string().url("URL inválida").optional().or(z.literal('')),
   checkoutImageUrl: z.string().url("URL inválida").optional().or(z.literal('')),
 });
@@ -76,7 +75,6 @@ export default function ProductsPage() {
       name: "",
       description: "",
       value: 0,
-      bannerUrl: "",
       logoUrl: "",
       checkoutImageUrl: "",
     },
@@ -89,7 +87,6 @@ export default function ProductsPage() {
         name: data.name,
         description: data.description,
         value: data.value,
-        bannerUrl: data.bannerUrl,
         logoUrl: data.logoUrl,
         checkoutImageUrl: data.checkoutImageUrl,
       };
@@ -227,20 +224,7 @@ export default function ProductsPage() {
                       </FormItem>
                     )}
                   />
-                 <div className="grid md:grid-cols-2 gap-4">
-                    <FormField
-                        control={form.control}
-                        name="bannerUrl"
-                        render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>URL da Imagem do Banner (Opcional)</FormLabel>
-                            <FormControl>
-                            <Input placeholder="https://..." {...field} />
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                        )}
-                    />
+                 <div className="grid grid-cols-1 gap-4">
                     <FormField
                         control={form.control}
                         name="logoUrl"
@@ -376,4 +360,6 @@ export default function ProductsPage() {
     </>
   );
 }
+    
+
     

@@ -29,7 +29,6 @@ const formSchema = z.object({
   name: z.string().min(3, "O nome deve ter pelo menos 3 caracteres."),
   description: z.string().min(3, "A descrição deve ter pelo menos 3 caracteres."),
   value: z.coerce.number().positive("O valor deve ser um número positivo."),
-  bannerUrl: z.string().url("URL inválida").optional().or(z.literal('')),
   logoUrl: z.string().url("URL inválida").optional().or(z.literal('')),
   checkoutImageUrl: z.string().url("URL inválida").optional().or(z.literal('')),
 });
@@ -55,7 +54,6 @@ export default function EditProductDialog({
       name: product.name,
       description: product.description,
       value: product.value,
-      bannerUrl: product.bannerUrl || "",
       logoUrl: product.logoUrl || "",
       checkoutImageUrl: product.checkoutImageUrl || "",
     },
@@ -67,7 +65,6 @@ export default function EditProductDialog({
         name: product.name,
         description: product.description,
         value: product.value,
-        bannerUrl: product.bannerUrl || "",
         logoUrl: product.logoUrl || "",
         checkoutImageUrl: product.checkoutImageUrl || "",
     });
@@ -132,19 +129,6 @@ export default function EditProductDialog({
             />
             <FormField
                 control={form.control}
-                name="bannerUrl"
-                render={({ field }) => (
-                <FormItem>
-                    <FormLabel>URL da Imagem do Banner (Opcional)</FormLabel>
-                    <FormControl>
-                    <Input {...field} />
-                    </FormControl>
-                    <FormMessage />
-                </FormItem>
-                )}
-            />
-            <FormField
-                control={form.control}
                 name="logoUrl"
                 render={({ field }) => (
                 <FormItem>
@@ -181,3 +165,5 @@ export default function EditProductDialog({
     </Dialog>
   );
 }
+
+    
