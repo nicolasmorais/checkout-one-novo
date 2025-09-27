@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect } from "react";
@@ -9,8 +8,10 @@ import Footer from "@/components/checkout/footer";
 import { Toaster } from "@/components/ui/toaster";
 import { createPayment, CreatePaymentInput, CreatePaymentOutput } from "@/ai/flows/create-payment-flow";
 import { saveSale, Sale } from "@/services/sales-service";
-import { Product } from "@/services/products-service";
+import { Product, getProductBySlug } from "@/services/products-service"; // Import getProductBySlug
 import { createTables } from "@/lib/seed-db";
+import { notFound } from "next/navigation"; // Import notFound for client-side redirection
+import { Skeleton } from "@/components/ui/skeleton";
 
 type UserData = {
   name: string;
@@ -20,16 +21,32 @@ type UserData = {
 type CheckoutStep = "INFO" | "QR" | "SUCCESS";
 
 interface CheckoutPageClientProps {
-    product: Product;
+    productSlug: string; // Now receives slug instead of product
 }
 
-export default function CheckoutPageClient({ product }: CheckoutPageClientProps) {
+export default function CheckoutPageClient({ productSlug }: CheckoutPageClientProps) {
   const [step, setStep] = useState<CheckoutStep>("INFO");
   const [userData, setUserData] = useState<UserData | null>(null);
   const [paymentData, setPaymentData] = useState<CreatePaymentOutput | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false); // For payment processing
+  const [product, setProduct] = useState<Product | null>(null); // State to store fetched product
+  const [isLoadingProduct, setIsLoadingProduct] = useState(true); // State for product fetching
 
   useEffect(() => {
+    // Fetch product on the client-side using the slug
+    const fetchProduct = () => {
+      setIsLoadingProduct(true);
+      const foundProduct = getProductBySlug(productSlug);
+      if (foundProduct) {
+        setProduct(foundProduct);
+      } else {
+        notFound(); // If product not found, show 404
+      }
+      setIsLoadingProduct(false);
+    };
+
+    fetchProduct();
+
     // We still ensure tables exist, but this is a quick client-side check.
     // The main product data is now passed via props.
     async function setupDatabase() {
@@ -41,9 +58,11 @@ export default function CheckoutPageClient({ product }: CheckoutPageClientProps)
       }
     }
     setupDatabase();
-  }, []);
+  }, [productSlug]); // Re-run when productSlug changes
 
   const handleInfoSubmit = async (data: UserData) => {
+    if (!product) return; // Should not happen if notFound() is called above
+
     setIsLoading(true);
     setUserData(data);
     try {
@@ -78,6 +97,16 @@ export default function CheckoutPageClient({ product }: CheckoutPageClientProps)
   };
 
   const renderStep = () => {
+    if (isLoadingProduct || !product) {
+        return <div className="space-y-4">
+            <Skeleton className="h-10 w-3/4" />
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-4 w-5/6" />
+            <Skeleton className="h-4 w-1/2" />
+            <Skeleton className="h-12 w-full" />
+        </div>;
+    }
+
     switch (step) {
       case "INFO":
         return <PersonalInfoForm product={product} onSubmit={handleInfoSubmit} isLoading={isLoading} />;
@@ -110,4 +139,3 @@ export default function CheckoutPageClient({ product }: CheckoutPageClientProps)
     </div>
   );
 }
-
