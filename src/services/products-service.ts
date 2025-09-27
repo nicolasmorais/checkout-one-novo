@@ -1,6 +1,8 @@
 
 "use client";
 
+import { Review } from "@/services/reviews-service";
+
 // Define the structure of a product object
 export interface Product {
   id: string; // Internal ID for React keys
@@ -8,9 +10,9 @@ export interface Product {
   name: string;
   description: string; // New field for subtitle like "Acesso Vitalício"
   value: number; // Stored as a number
-  bannerUrl?: string;
   logoUrl?: string;
   checkoutImageUrl?: string;
+  reviews: Review[];
 }
 
 const PRODUCTS_STORAGE_KEY = "firebase-studio-products";
@@ -44,7 +46,7 @@ export function getProducts(): Product[] {
  * @param {Omit<Product, 'id' | 'slug'>} productData The new product data.
  * @returns {Product} The full product object with id and slug.
  */
-export function saveProduct(productData: Omit<Product, 'id' | 'slug'>): Product {
+export function saveProduct(productData: Omit<Product, 'id' | 'slug' | 'reviews'>): Product {
   if (typeof window === "undefined") {
     throw new Error("Cannot save product on the server.");
   }
@@ -54,6 +56,10 @@ export function saveProduct(productData: Omit<Product, 'id' | 'slug'>): Product 
       id: new Date().getTime().toString(),
       slug: generateSlug(productData.name),
       ...productData,
+      reviews: [ // Add default reviews for new products
+        { id: '1', name: 'Maria S.', text: '“Transformou meu negócio! Os criativos que aprendi a fazer aqui geraram um ROI de 5x em menos de 30 dias. Essencial para quem quer escalar.”', rating: 5, avatarUrl: 'https://placehold.co/40x40.png' },
+        { id: '2', name: 'João P.', text: '“Didática incrível e conteúdo direto ao ponto. Consegui aplicar as técnicas no mesmo dia e já vi um aumento significativo no engajamento.”', rating: 5, avatarUrl: 'https://placehold.co/40x40.png' },
+      ],
     };
     const updatedProducts = [newProduct, ...existingProducts];
     window.localStorage.setItem(PRODUCTS_STORAGE_KEY, JSON.stringify(updatedProducts));

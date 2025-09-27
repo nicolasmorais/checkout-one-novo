@@ -11,23 +11,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
-import { getReviews, saveReview, updateReview, deleteReview, Review } from "@/services/reviews-service";
 import { getFooterData, saveFooterData, FooterData } from "@/services/footer-service";
 import { getCheckoutSettings, saveCheckoutSettings, CheckoutSettings } from "@/services/checkout-settings-service";
 import { getSiteSettings, saveSiteSettings, SiteSettings } from "@/services/site-settings-service";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import { Trash2, Edit, PlusCircle, Star } from "lucide-react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 // Helper function to convert hex to HSL string
 function hexToHsl(hex: string): string | null {
@@ -79,36 +66,19 @@ function getContrastColor(hex: string): string {
 
 const PRIMARY_COLOR_STORAGE_KEY = "theme_primary_color_hex";
 
-const reviewSchema = z.object({
-  name: z.string().min(2, "O nome é obrigatório."),
-  text: z.string().min(10, "A avaliação deve ter pelo menos 10 caracteres."),
-  rating: z.coerce.number().min(1).max(5),
-  avatarUrl: z.string().url("URL do avatar inválida.").optional().or(z.literal('')),
-});
-
 const siteSettingsSchema = z.object({
     siteName: z.string().min(1, "O nome do site é obrigatório."),
     faviconUrl: z.string().url("URL do favicon inválida.").or(z.literal('')),
     sidebarLogoUrl: z.string().url("URL do logo inválida.").or(z.literal('')),
 })
 
-type ReviewFormData = z.infer<typeof reviewSchema>;
 type SiteSettingsFormData = z.infer<typeof siteSettingsSchema>;
 
 
 export default function PersonalizacaoPage() {
   const [primaryColor, setPrimaryColor] = useState("#6d28d9");
-  const [reviews, setReviews] = useState<Review[]>([]);
-  const [isReviewFormOpen, setIsReviewFormOpen] = useState(false);
-  const [isDeleteAlertOpen, setIsDeleteAlertOpen] = useState(false);
-  const [selectedReview, setSelectedReview] = useState<Review | null>(null);
   
   const { toast } = useToast();
-
-  const reviewForm = useForm<ReviewFormData>({
-    resolver: zodResolver(reviewSchema),
-    defaultValues: { name: "", text: "", rating: 5, avatarUrl: "" },
-  });
 
   const footerForm = useFooterForm<FooterData>({
       defaultValues: getFooterData()
@@ -127,9 +97,6 @@ export default function PersonalizacaoPage() {
     // Load theme color
     const savedColor = localStorage.getItem(PRIMARY_COLOR_STORAGE_KEY);
     if (savedColor) setPrimaryColor(savedColor);
-
-    // Load reviews
-    setReviews(getReviews());
     
     // Load checkout alert settings
     checkoutSettingsForm.reset(getCheckoutSettings());
@@ -168,49 +135,6 @@ export default function PersonalizacaoPage() {
     saveFooterData(data);
     window.dispatchEvent(new Event('footerChanged'));
     toast({ title: "Rodapé Atualizado!", description: "As informações do rodapé foram salvas." });
-  };
-
-
-  const handleOpenReviewForm = (review: Review | null) => {
-    setSelectedReview(review);
-    reviewForm.reset(review || { name: "", text: "", rating: 5, avatarUrl: "" });
-    setIsReviewFormOpen(true);
-  };
-
-  const handleReviewFormSubmit = (data: ReviewFormData) => {
-    try {
-      if (selectedReview) {
-        const updatedReview = updateReview({ ...selectedReview, ...data });
-        setReviews(reviews.map(r => r.id === updatedReview.id ? updatedReview : r));
-        toast({ title: "Avaliação Atualizada!", description: "A avaliação foi salva com sucesso." });
-      } else {
-        const newReview = saveReview(data);
-        setReviews([newReview, ...reviews]);
-        toast({ title: "Avaliação Adicionada!", description: "A nova avaliação foi adicionada." });
-      }
-      setIsReviewFormOpen(false);
-    } catch (error) {
-      toast({ variant: "destructive", title: "Erro ao Salvar", description: "Não foi possível salvar a avaliação." });
-    }
-  };
-
-  const handleOpenDeleteAlert = (review: Review) => {
-    setSelectedReview(review);
-    setIsDeleteAlertOpen(true);
-  };
-
-  const handleDeleteReview = () => {
-    if (!selectedReview) return;
-    try {
-      deleteReview(selectedReview.id);
-      setReviews(reviews.filter(r => r.id !== selectedReview.id));
-      toast({ title: "Avaliação Excluída!", description: "A avaliação foi removida." });
-    } catch (error) {
-      toast({ variant: "destructive", title: "Erro ao Excluir", description: "Não foi possível excluir a avaliação." });
-    } finally {
-      setIsDeleteAlertOpen(false);
-      setSelectedReview(null);
-    }
   };
   
   const handleSaveSiteSettings = (data: SiteSettingsFormData) => {
@@ -374,95 +298,6 @@ export default function PersonalizacaoPage() {
             </CardFooter>
         </form>
       </Card>
-
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-            <div>
-                <CardTitle>Gerenciar Avaliações do Checkout</CardTitle>
-                <CardDescription>Adicione, edite ou remova as avaliações que aparecem na página de pagamento.</CardDescription>
-            </div>
-            <Button onClick={() => handleOpenReviewForm(null)}>
-                <PlusCircle className="mr-2"/>
-                Adicionar Avaliação
-            </Button>
-        </CardHeader>
-        <CardContent>
-           {reviews.length > 0 ? (
-               <div className="space-y-4">
-                   {reviews.map(review => (
-                       <div key={review.id} className="flex items-start gap-4 rounded-lg border p-4">
-                           <Avatar>
-                               <AvatarImage src={review.avatarUrl || `https://placehold.co/40x40.png?text=${review.name.charAt(0)}`} alt={review.name} data-ai-hint="person avatar"/>
-                               <AvatarFallback>{review.name.charAt(0)}</AvatarFallback>
-                           </Avatar>
-                           <div className="flex-1">
-                                <div className="flex items-center justify-between">
-                                    <p className="font-semibold">{review.name}</p>
-                                    <div className="flex items-center">
-                                        {[...Array(review.rating)].map((_, i) => <Star key={i} className="h-4 w-4 fill-yellow-400 text-yellow-400" />)}
-                                        {[...Array(5 - review.rating)].map((_, i) => <Star key={i} className="h-4 w-4 text-gray-300" />)}
-                                    </div>
-                                </div>
-                                <p className="text-sm text-muted-foreground mt-1">{review.text}</p>
-                           </div>
-                           <div className="flex gap-2">
-                               <Button variant="outline" size="icon" onClick={() => handleOpenReviewForm(review)}><Edit className="h-4 w-4"/></Button>
-                               <Button variant="destructive" size="icon" onClick={() => handleOpenDeleteAlert(review)}><Trash2 className="h-4 w-4"/></Button>
-                           </div>
-                       </div>
-                   ))}
-               </div>
-           ) : (
-                <div className="text-center py-10 text-muted-foreground">
-                    <p>Nenhuma avaliação cadastrada ainda.</p>
-                </div>
-           )}
-        </CardContent>
-      </Card>
-      
-      {/* Review Add/Edit Dialog */}
-      <AlertDialog open={isReviewFormOpen} onOpenChange={setIsReviewFormOpen}>
-        <AlertDialogContent>
-          <form onSubmit={reviewForm.handleSubmit(handleReviewFormSubmit)}>
-            <AlertDialogHeader>
-              <AlertDialogTitle>{selectedReview ? 'Editar Avaliação' : 'Adicionar Nova Avaliação'}</AlertDialogTitle>
-              <div className="space-y-4 pt-4">
-                 <Input {...reviewForm.register("name")} placeholder="Nome do Cliente" />
-                 {reviewForm.formState.errors.name && <p className="text-destructive text-sm">{reviewForm.formState.errors.name.message}</p>}
-                 <Textarea {...reviewForm.register("text")} placeholder="Texto da avaliação..."/>
-                 {reviewForm.formState.errors.text && <p className="text-destructive text-sm">{reviewForm.formState.errors.text.message}</p>}
-                 <Input {...reviewForm.register("avatarUrl")} placeholder="URL da Foto (opcional, ex: https://...)"/>
-                 {reviewForm.formState.errors.avatarUrl && <p className="text-destructive text-sm">{reviewForm.formState.errors.avatarUrl.message}</p>}
-                 <div>
-                    <Label>Nota (1 a 5 estrelas)</Label>
-                    <Input type="number" {...reviewForm.register("rating")} min="1" max="5"/>
-                    {reviewForm.formState.errors.rating && <p className="text-destructive text-sm">{reviewForm.formState.errors.rating.message}</p>}
-                 </div>
-              </div>
-            </AlertDialogHeader>
-            <AlertDialogFooter className="mt-4">
-              <AlertDialogCancel type="button" onClick={() => setIsReviewFormOpen(false)}>Cancelar</AlertDialogCancel>
-              <AlertDialogAction type="submit">Salvar</AlertDialogAction>
-            </AlertDialogFooter>
-          </form>
-        </AlertDialogContent>
-      </AlertDialog>
-
-      {/* Delete Confirmation Dialog */}
-      <AlertDialog open={isDeleteAlertOpen} onOpenChange={setIsDeleteAlertOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Você tem certeza?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Esta ação não pode ser desfeita. A avaliação será excluída permanentemente.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDeleteReview}>Sim, excluir</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
   );
 }

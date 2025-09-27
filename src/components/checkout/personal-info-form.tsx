@@ -24,7 +24,7 @@ import Image from "next/image";
 import { ShieldCheck, Star, Loader2 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Product } from "@/services/products-service";
-import { Review, getReviews } from "@/services/reviews-service";
+import { Review } from "@/services/reviews-service";
 import { getMarketingScripts } from "@/services/marketing-service";
 import { useState, useEffect } from "react";
 import * as fbq from '@/lib/fpixel';
@@ -48,11 +48,10 @@ interface PersonalInfoFormProps {
 }
 
 export default function PersonalInfoForm({ product, onSubmit, isLoading }: PersonalInfoFormProps) {
-  const [reviews, setReviews] = useState<Review[]>([]);
   const [pixelId, setPixelId] = useState<string | undefined>(undefined);
+  const reviews = product.reviews || [];
 
   useEffect(() => {
-    setReviews(getReviews());
     const scripts = getMarketingScripts();
     setPixelId(scripts.facebook_pixel_id);
   }, []);
@@ -169,7 +168,7 @@ export default function PersonalInfoForm({ product, onSubmit, isLoading }: Perso
         </Form>
       </Card>
 
-      {reviews.length > 0 && (
+      {reviews && reviews.length > 0 && (
         <Card className="w-full max-w-md shadow-lg mt-6">
           <CardHeader>
             <CardTitle>O que nossos clientes estão dizendo:</CardTitle>
