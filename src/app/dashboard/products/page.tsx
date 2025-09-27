@@ -51,8 +51,8 @@ const formSchema = z.object({
   name: z.string().min(3, "O nome deve ter pelo menos 3 caracteres."),
   description: z.string().min(3, "A descrição deve ter pelo menos 3 caracteres."),
   value: z.coerce.number().positive("O valor deve ser um número positivo."),
-  bannerUrl: z.string().url("Por favor, insira uma URL válida."),
-  logoUrl: z.string().url("Por favor, insira uma URL válida."),
+  bannerUrl: z.string().url("URL inválida").optional().or(z.literal('')),
+  logoUrl: z.string().url("URL inválida").optional().or(z.literal('')),
   checkoutImageUrl: z.string().url("URL inválida").optional().or(z.literal('')),
 });
 
@@ -233,7 +233,7 @@ export default function ProductsPage() {
                         name="bannerUrl"
                         render={({ field }) => (
                         <FormItem>
-                            <FormLabel>URL da Imagem do Banner</FormLabel>
+                            <FormLabel>URL da Imagem do Banner (Opcional)</FormLabel>
                             <FormControl>
                             <Input placeholder="https://..." {...field} />
                             </FormControl>
@@ -246,7 +246,7 @@ export default function ProductsPage() {
                         name="logoUrl"
                         render={({ field }) => (
                         <FormItem>
-                            <FormLabel>URL da Imagem da Logo</FormLabel>
+                            <FormLabel>URL da Imagem da Logo (Opcional)</FormLabel>
                             <FormControl>
                             <Input placeholder="https://..." {...field} />
                             </FormControl>

@@ -82,7 +82,7 @@ export default function PersonalInfoForm({ product, onSubmit, isLoading }: Perso
         <CardHeader className="p-4">
           <div className="flex items-start gap-4">
              <Image
-              src={product.logoUrl}
+              src={product.logoUrl || `https://placehold.co/80x80.png?text=${product.name.charAt(0)}`}
               alt="Product Image"
               width={80}
               height={80}
