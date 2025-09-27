@@ -11,7 +11,7 @@ export interface Product {
   description: string; // New field for subtitle like "Acesso Vitalício"
   value: number; // Stored as a number
   logoUrl?: string;
-  checkoutImageUrl?: string;
+  checkoutImageUrls?: string[];
   reviews: Review[];
 }
 
@@ -46,7 +46,7 @@ export function getProducts(): Product[] {
  * @param {Omit<Product, 'id' | 'slug'>} productData The new product data.
  * @returns {Product} The full product object with id and slug.
  */
-export function saveProduct(productData: Omit<Product, 'id' | 'slug' | 'reviews'>): Product {
+export function saveProduct(productData: Omit<Product, 'id' | 'slug'>): Product {
   if (typeof window === "undefined") {
     throw new Error("Cannot save product on the server.");
   }

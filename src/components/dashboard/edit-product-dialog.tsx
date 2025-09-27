@@ -24,7 +24,6 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Product } from "@/services/products-service";
-import { Review } from "@/services/reviews-service";
 import { useEffect } from "react";
 import { Trash2, PlusCircle, Star } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
@@ -37,12 +36,16 @@ const reviewSchema = z.object({
   avatarUrl: z.string().url("URL do avatar inválida.").optional().or(z.literal('')),
 });
 
+const imageUrlSchema = z.object({
+  url: z.string().url("URL da imagem inválida").or(z.literal('')),
+});
+
 const formSchema = z.object({
   name: z.string().min(3, "O nome deve ter pelo menos 3 caracteres."),
   description: z.string().min(3, "A descrição deve ter pelo menos 3 caracteres."),
   value: z.coerce.number().positive("O valor deve ser um número positivo."),
   logoUrl: z.string().url("URL inválida").optional().or(z.literal('')),
-  checkoutImageUrl: z.string().url("URL inválida").optional().or(z.literal('')),
+  checkoutImageUrls: z.array(imageUrlSchema),
   reviews: z.array(reviewSchema),
 });
 
@@ -68,14 +71,19 @@ export default function EditProductDialog({
       description: product.description,
       value: product.value,
       logoUrl: product.logoUrl || "",
-      checkoutImageUrl: product.checkoutImageUrl || "",
+      checkoutImageUrls: product.checkoutImageUrls?.map(url => ({ url })) || [],
       reviews: product.reviews || [],
     },
   });
 
-  const { fields, append, remove } = useFieldArray({
+  const { fields: reviewFields, append: appendReview, remove: removeReview } = useFieldArray({
     control: form.control,
     name: "reviews",
+  });
+
+  const { fields: imageFields, append: appendImage, remove: removeImage } = useFieldArray({
+    control: form.control,
+    name: "checkoutImageUrls",
   });
 
   // Reset form when the product prop changes
@@ -85,7 +93,7 @@ export default function EditProductDialog({
         description: product.description,
         value: product.value,
         logoUrl: product.logoUrl || "",
-        checkoutImageUrl: product.checkoutImageUrl || "",
+        checkoutImageUrls: product.checkoutImageUrls?.map(url => ({ url })) || [],
         reviews: product.reviews || [],
     });
   }, [product, form]);
@@ -94,6 +102,7 @@ export default function EditProductDialog({
     onSave({
       ...product,
       ...data,
+      checkoutImageUrls: data.checkoutImageUrls.map(item => item.url),
     });
   };
 
@@ -160,19 +169,49 @@ export default function EditProductDialog({
                 </FormItem>
                 )}
             />
-            <FormField
-                control={form.control}
-                name="checkoutImageUrl"
-                render={({ field }) => (
-                <FormItem>
-                    <FormLabel>URL da Imagem do Checkout (Opcional)</FormLabel>
-                    <FormControl>
-                    <Input {...field} />
-                    </FormControl>
-                    <FormMessage />
-                </FormItem>
-                )}
-            />
+
+            <Separator />
+
+             <div>
+                <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-medium">Imagens do Checkout</h3>
+                    <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => appendImage({ url: "" })}
+                    >
+                        <PlusCircle className="mr-2 h-4 w-4" />
+                        Adicionar Imagem
+                    </Button>
+                </div>
+                <div className="space-y-4">
+                    {imageFields.map((field, index) => (
+                    <div key={field.id} className="flex items-center gap-2">
+                        <FormField
+                        control={form.control}
+                        name={`checkoutImageUrls.${index}.url`}
+                        render={({ field }) => (
+                            <FormItem className="flex-grow">
+                            <FormControl>
+                                <Input placeholder="https://..." {...field} />
+                            </FormControl>
+                            <FormMessage />
+                            </FormItem>
+                        )}
+                        />
+                        <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => removeImage(index)}
+                        >
+                        <Trash2 className="h-4 w-4 text-destructive" />
+                        </Button>
+                    </div>
+                    ))}
+                </div>
+             </div>
 
             <Separator />
 
@@ -183,7 +222,7 @@ export default function EditProductDialog({
                   type="button"
                   variant="outline"
                   size="sm"
-                  onClick={() => append({ id: new Date().getTime().toString(), name: "", text: "", rating: 5, avatarUrl: "" })}
+                  onClick={() => appendReview({ id: new Date().getTime().toString(), name: "", text: "", rating: 5, avatarUrl: "" })}
                 >
                   <PlusCircle className="mr-2 h-4 w-4" />
                   Adicionar Avaliação
@@ -191,14 +230,14 @@ export default function EditProductDialog({
               </div>
 
               <div className="space-y-4">
-                {fields.map((field, index) => (
+                {reviewFields.map((field, index) => (
                   <div key={field.id} className="p-4 border rounded-md space-y-2 relative">
                     <Button
                       type="button"
                       variant="ghost"
                       size="icon"
                       className="absolute top-2 right-2"
-                      onClick={() => remove(index)}
+                      onClick={() => removeReview(index)}
                     >
                       <Trash2 className="h-4 w-4 text-destructive" />
                     </Button>

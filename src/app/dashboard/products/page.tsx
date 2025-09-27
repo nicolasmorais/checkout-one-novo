@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import {
@@ -42,17 +42,22 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { Package, Copy, Link as LinkIcon, Loader2, Trash2, Edit } from "lucide-react";
+import { Package, Copy, Link as LinkIcon, Loader2, Trash2, Edit, PlusCircle } from "lucide-react";
 import { Product, getProducts, saveProduct, deleteProduct, updateProduct } from "@/services/products-service";
 import EditProductDialog from "@/components/dashboard/edit-product-dialog";
+import { Separator } from "@/components/ui/separator";
 
+
+const imageUrlSchema = z.object({
+  url: z.string().url("URL da imagem inválida").or(z.literal('')),
+});
 
 const formSchema = z.object({
   name: z.string().min(3, "O nome deve ter pelo menos 3 caracteres."),
   description: z.string().min(3, "A descrição deve ter pelo menos 3 caracteres."),
   value: z.coerce.number().positive("O valor deve ser um número positivo."),
   logoUrl: z.string().url("URL inválida").optional().or(z.literal('')),
-  checkoutImageUrl: z.string().url("URL inválida").optional().or(z.literal('')),
+  checkoutImageUrls: z.array(imageUrlSchema),
 });
 
 type ProductFormData = z.infer<typeof formSchema>;
@@ -76,8 +81,13 @@ export default function ProductsPage() {
       description: "",
       value: 0,
       logoUrl: "",
-      checkoutImageUrl: "",
+      checkoutImageUrls: [],
     },
+  });
+
+  const { fields, append, remove } = useFieldArray({
+    control: form.control,
+    name: "checkoutImageUrls",
   });
 
   const handleAddProduct = (data: ProductFormData) => {
@@ -88,7 +98,8 @@ export default function ProductsPage() {
         description: data.description,
         value: data.value,
         logoUrl: data.logoUrl,
-        checkoutImageUrl: data.checkoutImageUrl,
+        checkoutImageUrls: data.checkoutImageUrls.map(item => item.url).filter(Boolean),
+        reviews: [], // Will be populated with default reviews by saveProduct
       };
       const savedProduct = saveProduct(newProduct);
       setProducts(currentProducts => [savedProduct, ...currentProducts]);
@@ -239,19 +250,50 @@ export default function ProductsPage() {
                         )}
                     />
                  </div>
-                 <FormField
-                    control={form.control}
-                    name="checkoutImageUrl"
-                    render={({ field }) => (
-                    <FormItem>
-                        <FormLabel>URL da Imagem do Checkout (Opcional)</FormLabel>
-                        <FormControl>
-                        <Input placeholder="https://..." {...field} />
-                        </FormControl>
-                        <FormMessage />
-                    </FormItem>
-                    )}
-                />
+                 
+                <Separator />
+                
+                <div>
+                  <div className="flex items-center justify-between mb-4">
+                      <h3 className="text-lg font-medium">Imagens do Checkout (Opcional)</h3>
+                      <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => append({ url: "" })}
+                      >
+                          <PlusCircle className="mr-2 h-4 w-4" />
+                          Adicionar Imagem
+                      </Button>
+                  </div>
+                  <div className="space-y-4">
+                      {fields.map((field, index) => (
+                      <div key={field.id} className="flex items-center gap-2">
+                          <FormField
+                          control={form.control}
+                          name={`checkoutImageUrls.${index}.url`}
+                          render={({ field }) => (
+                              <FormItem className="flex-grow">
+                              <FormControl>
+                                  <Input placeholder="https://..." {...field} />
+                              </FormControl>
+                              <FormMessage />
+                              </FormItem>
+                          )}
+                          />
+                          <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => remove(index)}
+                          >
+                          <Trash2 className="h-4 w-4 text-destructive" />
+                          </Button>
+                      </div>
+                      ))}
+                  </div>
+                </div>
+
               </CardContent>
               <CardFooter>
                 <Button type="submit" disabled={isLoading}>
