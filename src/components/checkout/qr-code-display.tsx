@@ -141,7 +141,7 @@ export default function QrCodeDisplay({ userData, product, paymentData, onScanne
                 <li>Pronto! Pagamento aprovado na hora.</li>
               </ol>
             </div>
-           <div className="w-full text-center font-mono text-sm break-all p-3 mb-2 bg-gray-50 dark:bg-gray-800/50 rounded-md border border-dashed">
+           <div className="w-full text-center font-mono text-sm overflow-hidden text-ellipsis whitespace-nowrap p-3 mb-2 bg-gray-50 dark:bg-gray-800/50 rounded-md border border-dashed">
             {paymentData.pixCode}
           </div>
           <Button onClick={handleCopy} className="w-full">
