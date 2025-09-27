@@ -142,7 +142,7 @@ export default function CheckoutPageContent({ params }: { params: { slug: string
               <Image
                 src={product.bannerUrl}
                 alt="Banner"
-                width={600} 
+                width={600}
                 height={400}
                 className="w-full h-auto object-cover"
                 data-ai-hint="advertisement banner"
