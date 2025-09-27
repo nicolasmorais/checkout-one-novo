@@ -8,6 +8,11 @@ import { createProductsTable } from "@/services/products-service"; // Importa a 
 export async function createTables() {
   console.log('Starting table creation...');
   try {
+    // DROPA a tabela de produtos se ela existir para garantir que o schema seja sempre o mais recente
+    // CUIDADO: ISSO APAGARÁ TODOS OS DADOS EXISTENTES NA TABELA products EM PRODUÇÃO
+    await sql`DROP TABLE IF EXISTS products CASCADE;`; // Adicionei CASCADE para remover dependências, se houver
+    console.log('Existing "products" table dropped.');
+
     // Chama a função para criar a tabela de produtos do serviço de produtos
     await createProductsTable();
     console.log('Table "products" checked/created by product service.');
