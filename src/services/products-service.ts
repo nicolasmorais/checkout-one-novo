@@ -10,6 +10,7 @@ export interface Product {
   value: number; // Stored as a number
   bannerUrl: string;
   logoUrl: string;
+  checkoutImageUrl?: string;
 }
 
 const PRODUCTS_STORAGE_KEY = "firebase-studio-products";

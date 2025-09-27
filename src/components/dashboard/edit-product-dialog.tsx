@@ -31,6 +31,7 @@ const formSchema = z.object({
   value: z.coerce.number().positive("O valor deve ser um número positivo."),
   bannerUrl: z.string().url("Por favor, insira uma URL válida."),
   logoUrl: z.string().url("Por favor, insira uma URL válida."),
+  checkoutImageUrl: z.string().url("URL inválida").optional().or(z.literal('')),
 });
 
 type ProductFormData = z.infer<typeof formSchema>;
@@ -56,6 +57,7 @@ export default function EditProductDialog({
       value: product.value,
       bannerUrl: product.bannerUrl,
       logoUrl: product.logoUrl,
+      checkoutImageUrl: product.checkoutImageUrl || "",
     },
   });
 
@@ -67,6 +69,7 @@ export default function EditProductDialog({
         value: product.value,
         bannerUrl: product.bannerUrl,
         logoUrl: product.logoUrl,
+        checkoutImageUrl: product.checkoutImageUrl || "",
     });
   }, [product, form]);
 
@@ -146,6 +149,19 @@ export default function EditProductDialog({
                 render={({ field }) => (
                 <FormItem>
                     <FormLabel>URL da Imagem da Logo</FormLabel>
+                    <FormControl>
+                    <Input {...field} />
+                    </FormControl>
+                    <FormMessage />
+                </FormItem>
+                )}
+            />
+            <FormField
+                control={form.control}
+                name="checkoutImageUrl"
+                render={({ field }) => (
+                <FormItem>
+                    <FormLabel>URL da Imagem do Checkout (Opcional)</FormLabel>
                     <FormControl>
                     <Input {...field} />
                     </FormControl>

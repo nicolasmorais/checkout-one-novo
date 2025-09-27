@@ -53,6 +53,7 @@ const formSchema = z.object({
   value: z.coerce.number().positive("O valor deve ser um número positivo."),
   bannerUrl: z.string().url("Por favor, insira uma URL válida."),
   logoUrl: z.string().url("Por favor, insira uma URL válida."),
+  checkoutImageUrl: z.string().url("URL inválida").optional().or(z.literal('')),
 });
 
 type ProductFormData = z.infer<typeof formSchema>;
@@ -75,8 +76,9 @@ export default function ProductsPage() {
       name: "",
       description: "",
       value: 0,
-      bannerUrl: "https://placehold.co/600x400.png",
-      logoUrl: "https://placehold.co/80x80.png",
+      bannerUrl: "",
+      logoUrl: "",
+      checkoutImageUrl: "",
     },
   });
 
@@ -89,6 +91,7 @@ export default function ProductsPage() {
         value: data.value,
         bannerUrl: data.bannerUrl,
         logoUrl: data.logoUrl,
+        checkoutImageUrl: data.checkoutImageUrl,
       };
       const savedProduct = saveProduct(newProduct);
       setProducts(currentProducts => [savedProduct, ...currentProducts]);
@@ -252,6 +255,19 @@ export default function ProductsPage() {
                         )}
                     />
                  </div>
+                 <FormField
+                    control={form.control}
+                    name="checkoutImageUrl"
+                    render={({ field }) => (
+                    <FormItem>
+                        <FormLabel>URL da Imagem do Checkout (Opcional)</FormLabel>
+                        <FormControl>
+                        <Input placeholder="https://..." {...field} />
+                        </FormControl>
+                        <FormMessage />
+                    </FormItem>
+                    )}
+                />
               </CardContent>
               <CardFooter>
                 <Button type="submit" disabled={isLoading}>
@@ -360,5 +376,4 @@ export default function ProductsPage() {
     </>
   );
 }
-
     

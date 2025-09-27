@@ -104,6 +104,20 @@ export default function PersonalInfoForm({ product, onSubmit, isLoading }: Perso
           </div>
         </CardHeader>
       </Card>
+      
+      {product.checkoutImageUrl && (
+          <div className="relative w-full max-w-md mt-6 rounded-md overflow-hidden">
+             <Image
+              src={product.checkoutImageUrl}
+              alt="Imagem do Checkout"
+              width={600} 
+              height={400}
+              className="w-full h-auto"
+              data-ai-hint="advertisement"
+              unoptimized
+            />
+          </div>
+      )}
 
       <Card className="w-full max-w-md shadow-lg mt-6">
         <CardHeader>
