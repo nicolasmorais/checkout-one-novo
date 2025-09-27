@@ -1,21 +1,16 @@
+// src/lib/seed-db.ts
 
 'use server';
 
 import { sql } from '@vercel/postgres';
+import { createProductsTable } from "@/services/products-service"; // Importa a função de criação da tabela de produtos
 
 export async function createTables() {
   console.log('Starting table creation...');
   try {
-    await sql`
-      CREATE TABLE IF NOT EXISTS products (
-        id SERIAL PRIMARY KEY,
-        name VARCHAR(255) NOT NULL,
-        price NUMERIC(10, 2) NOT NULL,
-        image_url VARCHAR(255),
-        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-      );
-    `;
-    console.log('Table "products" checked/created.');
+    // Chama a função para criar a tabela de produtos do serviço de produtos
+    await createProductsTable();
+    console.log('Table "products" checked/created by product service.');
 
     await sql`
       CREATE TABLE IF NOT EXISTS sales (
