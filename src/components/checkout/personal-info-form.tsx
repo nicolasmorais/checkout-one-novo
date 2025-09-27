@@ -78,6 +78,25 @@ export default function PersonalInfoForm({ product, onSubmit, isLoading }: Perso
 
   return (
     <>
+      <div className="w-full max-w-md">
+        {product.checkoutImageUrl && (
+            <div className="relative w-full mb-4 rounded-md overflow-hidden">
+                <Image
+                src={product.checkoutImageUrl}
+                alt="Imagem do Checkout"
+                width={600} 
+                height={400}
+                className="w-full h-auto"
+                data-ai-hint="advertisement"
+                unoptimized
+                />
+            </div>
+        )}
+        <div className="mb-4 flex items-center justify-center gap-2 rounded-md bg-primary p-3 text-primary-foreground">
+            <ShieldCheck />
+            <span className="font-bold">COMPRA 100% SEGURA</span>
+        </div>
+      </div>
       <Card className="w-full max-w-md shadow-lg">
         <CardHeader className="p-4">
           <div className="flex items-start gap-4">
@@ -105,20 +124,6 @@ export default function PersonalInfoForm({ product, onSubmit, isLoading }: Perso
         </CardHeader>
       </Card>
       
-      {product.checkoutImageUrl && (
-          <div className="relative w-full max-w-md mt-6 rounded-md overflow-hidden">
-             <Image
-              src={product.checkoutImageUrl}
-              alt="Imagem do Checkout"
-              width={600} 
-              height={400}
-              className="w-full h-auto"
-              data-ai-hint="advertisement"
-              unoptimized
-            />
-          </div>
-      )}
-
       <Card className="w-full max-w-md shadow-lg mt-6">
         <CardHeader>
           <h3 className="font-bold text-lg">Dados Pessoais</h3>

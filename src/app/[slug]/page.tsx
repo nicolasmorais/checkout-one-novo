@@ -26,7 +26,6 @@ const DEFAULT_PRODUCT: Omit<Product, 'id' | 'slug'> = {
   name: "Produto Padrão",
   description: "Acesso ao item selecionado",
   value: 9.90,
-  bannerUrl: "https://placehold.co/600x400.png",
   logoUrl: "https://placehold.co/80x80.png"
 };
 
@@ -136,26 +135,6 @@ export default function CheckoutPageContent({ params }: { params: { slug: string
   return (
     <div className="flex flex-col min-h-screen">
       <main className="flex-grow flex w-full flex-col items-center bg-background p-4 font-body">
-        <div className="w-full max-w-md">
-          {product.bannerUrl && (
-            <div className="relative w-full mb-4 rounded-md overflow-hidden">
-              <Image
-                src={product.bannerUrl}
-                alt="Banner"
-                width={600}
-                height={400}
-                className="w-full h-auto object-cover"
-                data-ai-hint="advertisement banner"
-                unoptimized
-                priority
-              />
-            </div>
-          )}
-          <div className="mb-4 flex items-center justify-center gap-2 rounded-md bg-primary p-3 text-primary-foreground">
-            <ShieldCheck />
-            <span className="font-bold">COMPRA 100% SEGURA</span>
-          </div>
-        </div>
         <div key={step} className="w-full max-w-md animate-in fade-in duration-500">
           {renderStep()}
         </div>
