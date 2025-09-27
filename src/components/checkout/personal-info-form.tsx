@@ -28,7 +28,6 @@ import { Review } from "@/services/reviews-service";
 import { getMarketingScripts } from "@/services/marketing-service";
 import { useState, useEffect } from "react";
 import * as fbq from '@/lib/fpixel';
-import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 
 
 const formSchema = z.object({
@@ -80,29 +79,20 @@ export default function PersonalInfoForm({ product, onSubmit, isLoading }: Perso
     <>
       <div className="w-full max-w-md">
         {product.checkoutImageUrls && product.checkoutImageUrls.length > 0 && (
-          <Carousel className="w-full mb-4 rounded-md overflow-hidden" opts={{ loop: true }}>
-            <CarouselContent>
-              {product.checkoutImageUrls.map((url, index) => (
-                <CarouselItem key={index}>
-                  <Image
-                    src={url}
-                    alt={`Imagem do Checkout ${index + 1}`}
-                    width={600}
-                    height={400}
-                    className="w-full h-auto object-cover"
-                    data-ai-hint="advertisement"
-                    unoptimized
-                  />
-                </CarouselItem>
-              ))}
-            </CarouselContent>
-            {product.checkoutImageUrls.length > 1 && (
-                <>
-                    <CarouselPrevious className="left-2" />
-                    <CarouselNext className="right-2" />
-                </>
-            )}
-          </Carousel>
+            <div className="flex flex-col w-full mb-4">
+                 {product.checkoutImageUrls.map((url, index) => (
+                    <Image
+                        key={index}
+                        src={url}
+                        alt={`Imagem do Checkout ${index + 1}`}
+                        width={600}
+                        height={400}
+                        className="w-full h-auto object-cover"
+                        data-ai-hint="advertisement"
+                        unoptimized
+                    />
+                 ))}
+            </div>
         )}
         <div className="mb-4 flex items-center justify-center gap-2 rounded-md bg-primary p-3 text-primary-foreground">
             <ShieldCheck />
