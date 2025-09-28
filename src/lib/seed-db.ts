@@ -6,6 +6,12 @@ import { db } from '@vercel/postgres';
 import { createProductsTable } from "@/services/products-service"; // Importa a função de criação da tabela de produtos
 
 export async function createTables() {
+  // Evitar a execução em ambiente local sem variáveis de ambiente
+  if (!process.env.POSTGRES_URL) {
+      console.log('Skipping table creation: POSTGRES_URL environment variable not found.');
+      return;
+  }
+  
   console.log('Starting table creation...');
   const client = await db.connect();
   try {
