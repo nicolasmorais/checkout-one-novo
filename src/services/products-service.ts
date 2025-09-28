@@ -3,7 +3,7 @@
 // Removendo "use client";
 'use server';
 
-import { db, sql } from '@vercel/postgres';
+import { db } from '@vercel/postgres';
 import { Review } from "@/services/reviews-service"; // Re-using Review interface
 
 // Define a estrutura de um objeto de produto, alinhada com a tabela do banco de dados
