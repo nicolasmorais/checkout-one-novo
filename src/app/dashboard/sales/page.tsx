@@ -109,7 +109,13 @@ export default function SalesPage() {
   }, [setSales, toast, setIsRefreshing]);
 
   useEffect(() => {
+    // Register the refresh function with the global context
     setOnRefresh(() => handleRefresh);
+
+    // Fetch initial data when component mounts
+    handleRefresh();
+    
+    // Cleanup function
     return () => setOnRefresh(() => () => {});
   }, [handleRefresh, setOnRefresh]);
 
