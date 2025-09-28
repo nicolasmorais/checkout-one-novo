@@ -28,8 +28,9 @@ function generateSlug(name: string): string {
  * Cria a tabela de produtos no banco de dados, se não existir.
  */
 export async function createProductsTable() {
+  const client = await db.connect();
   try {
-    await sql`
+    await client.sql`
       CREATE TABLE IF NOT EXISTS products (
         id SERIAL PRIMARY KEY,
         slug VARCHAR(255) UNIQUE NOT NULL,
@@ -45,6 +46,8 @@ export async function createProductsTable() {
   } catch (error) {
     console.error('Error creating products table in Vercel Postgres:', error);
     throw error;
+  } finally {
+      client.release();
   }
 }
 
@@ -53,8 +56,9 @@ export async function createProductsTable() {
  * @returns {Promise<Product[]>} Um array de objetos Product.
  */
 export async function getProducts(): Promise<Product[]> {
+  const client = await db.connect();
   try {
-    const { rows } = await sql<any>`SELECT id, slug, name, description, value, logo_url AS "logoUrl", checkout_image_urls AS "checkoutImageUrls", reviews FROM products ORDER BY id DESC;`;
+    const { rows } = await client.sql<any>`SELECT id, slug, name, description, value, logo_url AS "logoUrl", checkout_image_urls AS "checkoutImageUrls", reviews FROM products ORDER BY id DESC;`;
     return rows.map(row => ({
       ...row,
       id: String(row.id), // Ensure id is string
@@ -64,6 +68,8 @@ export async function getProducts(): Promise<Product[]> {
   } catch (error) {
     console.error('Error fetching products from Vercel Postgres:', error);
     return [];
+  } finally {
+      client.release();
   }
 }
 
@@ -73,6 +79,7 @@ export async function getProducts(): Promise<Product[]> {
  * @returns {Promise<Product>} O objeto Product completo com o ID gerado.
  */
 export async function saveProduct(productData: Omit<Product, 'id' | 'slug'>): Promise<Product> {
+  const client = await db.connect();
   try {
     const newSlug = generateSlug(productData.name);
     // Assign default reviews if they don't exist, as per previous logic.
@@ -81,7 +88,7 @@ export async function saveProduct(productData: Omit<Product, 'id' | 'slug'>): Pr
       { id: '2', name: 'João P.', text: '“Didática incrível e conteúdo direto ao ponto. Consegui aplicar as técnicas no mesmo dia e já vi um aumento significativo no engajamento.”', rating: 5, avatarUrl: 'https://placehold.co/40x40.png' },
     ];
     
-    const { rows } = await sql<any>`
+    const { rows } = await client.sql<any>`
       INSERT INTO products (
         slug,
         name,
@@ -111,6 +118,8 @@ export async function saveProduct(productData: Omit<Product, 'id' | 'slug'>): Pr
   } catch (error) {
     console.error('Error saving product to Vercel Postgres:', error);
     throw error;
+  } finally {
+      client.release();
   }
 }
 
@@ -120,8 +129,9 @@ export async function saveProduct(productData: Omit<Product, 'id' | 'slug'>): Pr
  * @returns {Promise<Product | undefined>} O produto encontrado ou undefined.
  */
 export async function getProductBySlug(slug: string): Promise<Product | undefined> {
+  const client = await db.connect();
   try {
-    const { rows } = await sql<any>`
+    const { rows } = await client.sql<any>`
       SELECT id, slug, name, description, value, logo_url AS "logoUrl", checkout_image_urls AS "checkoutImageUrls", reviews
       FROM products
       WHERE slug = ${slug};
@@ -139,6 +149,8 @@ export async function getProductBySlug(slug: string): Promise<Product | undefine
   } catch (error) {
     console.error('Error fetching product by slug from Vercel Postgres:', error);
     return undefined;
+  } finally {
+      client.release();
   }
 }
 
@@ -148,8 +160,9 @@ export async function getProductBySlug(slug: string): Promise<Product | undefine
  * @returns {Promise<Product>} O objeto Product atualizado.
  */
 export async function updateProduct(updatedProduct: Product): Promise<Product> {
+  const client = await db.connect();
   try {
-    const { rows } = await sql<any>`
+    const { rows } = await client.sql<any>`
       UPDATE products
       SET
         name = ${updatedProduct.name},
@@ -171,6 +184,8 @@ export async function updateProduct(updatedProduct: Product): Promise<Product> {
   } catch (error) {
     console.error('Error updating product in Vercel Postgres:', error);
     throw error;
+  } finally {
+      client.release();
   }
 }
 
@@ -179,11 +194,14 @@ export async function updateProduct(updatedProduct: Product): Promise<Product> {
  * @param {string} productId O ID do produto a ser deletado.
  */
 export async function deleteProduct(productId: string): Promise<void> {
+  const client = await db.connect();
   try {
-    await sql`DELETE FROM products WHERE id = ${productId};`;
+    await client.sql`DELETE FROM products WHERE id = ${productId};`;
     console.log(`Product with ID ${productId} deleted from Vercel Postgres.`);
   } catch (error) {
     console.error('Error deleting product from Vercel Postgres:', error);
     throw error;
+  } finally {
+      client.release();
   }
 }

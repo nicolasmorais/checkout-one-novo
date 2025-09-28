@@ -1,7 +1,7 @@
 
 'use server';
 
-import { db, sql } from '@vercel/postgres';
+import { db } from '@vercel/postgres';
 
 export interface Sale {
   id: number;
@@ -16,9 +16,10 @@ export interface Sale {
 }
 
 export async function saveSale(sale: Omit<Sale, 'id' | 'sale_date'>) {
+    const client = await db.connect();
   try {
     // await db.connect(); // connect() is often not needed with modern Vercel Postgres clients
-    await sql`
+    await client.sql`
       INSERT INTO sales (
         transaction_id, 
         customer_name, 
@@ -41,6 +42,8 @@ export async function saveSale(sale: Omit<Sale, 'id' | 'sale_date'>) {
   } catch (error) {
     console.error('Error saving sale to Vercel Postgres:', error);
     throw error;
+  } finally {
+      client.release();
   }
 }
 
@@ -49,8 +52,9 @@ export async function saveSale(sale: Omit<Sale, 'id' | 'sale_date'>) {
  * @returns {Promise<Sale[]>} A promise that resolves to an array of sales.
  */
 export async function getSales(): Promise<Sale[]> {
+    const client = await db.connect();
     try {
-        const { rows } = await sql`SELECT 
+        const { rows } = await client.sql`SELECT 
           id, 
           transaction_id, 
           customer_name, 
@@ -65,6 +69,8 @@ export async function getSales(): Promise<Sale[]> {
     } catch (error) {
         console.error('Error fetching sales from Vercel Postgres:', error);
         throw error;
+    } finally {
+        client.release();
     }
 }
 
@@ -76,8 +82,9 @@ export async function getSales(): Promise<Sale[]> {
  * @returns {Promise<Sale[]>} A promise that resolves to the updated list of all sales.
  */
 export async function updateSaleStatus(transactionId: string, newStatus: string): Promise<Sale[]> {
+    const client = await db.connect();
     try {
-        await sql`
+        await client.sql`
             UPDATE sales
             SET status = ${newStatus}
             WHERE transaction_id = ${transactionId};
@@ -88,5 +95,7 @@ export async function updateSaleStatus(transactionId: string, newStatus: string)
     } catch (error) {
         console.error('Error updating sale status in Vercel Postgres:', error);
         throw error;
+    } finally {
+        client.release();
     }
 }
