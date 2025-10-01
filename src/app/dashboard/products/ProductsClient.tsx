@@ -1,0 +1,386 @@
+// src/app/dashboard/products/ProductsClient.tsx
+"use client";
+
+import { useState } from "react";
+import { useForm, useFieldArray } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+  CardFooter,
+} from "@/components/ui/card";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
+import { Package, Copy, Link as LinkIcon, Loader2, Trash2, Edit, PlusCircle } from "lucide-react";
+import { Product } from "@/services/products-service";
+import EditProductDialog from "@/components/dashboard/edit-product-dialog";
+import { Separator } from "@/components/ui/separator";
+import { addProductAction, updateProductAction, deleteProductAction, ProductFormData } from "./actions"; // Import Server Actions
+
+// Schema for client-side validation
+const imageUrlSchema = z.object({
+  url: z.string().url("URL da imagem inválida").or(z.literal('')),
+});
+
+const formSchema = z.object({
+  name: z.string().min(3, "O nome deve ter pelo menos 3 caracteres."),
+  description: z.string().min(3, "A descrição deve ter pelo menos 3 caracteres."),
+  value: z.coerce.number().positive("O valor deve ser um número positivo."),
+  logoUrl: z.string().url("URL inválida").optional().or(z.literal('')),
+  checkoutImageUrls: z.array(imageUrlSchema),
+});
+
+interface ProductsClientProps {
+  initialProducts: Product[];
+}
+
+export default function ProductsClient({ initialProducts }: ProductsClientProps) {
+  const [products, setProducts] = useState<Product[]>(initialProducts);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isDeleteAlertOpen, setIsDeleteAlertOpen] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const { toast } = useToast();
+
+  const form = useForm<ProductFormData>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      name: "",
+      description: "",
+      value: 0,
+      logoUrl: "",
+      checkoutImageUrls: [],
+    },
+  });
+
+  const { fields, append, remove } = useFieldArray({
+    control: form.control,
+    name: "checkoutImageUrls",
+  });
+
+  const handleAddProduct = async (data: ProductFormData) => {
+    setIsLoading(true);
+    const result = await addProductAction(data);
+    if (result.success) {
+      toast({
+        title: "Sucesso!",
+        description: result.message,
+      });
+      form.reset();
+      remove(); // Limpa os campos de URL de imagem
+    } else {
+      toast({
+        variant: "destructive",
+        title: "Erro",
+        description: result.message,
+      });
+    }
+    setIsLoading(false);
+  };
+
+  const handleUpdateProduct = async (updatedData: Product) => {
+    const result = await updateProductAction(updatedData);
+    if (result.success) {
+      toast({
+        title: "Sucesso!",
+        description: result.message,
+      });
+      setIsEditModalOpen(false);
+    } else {
+      toast({
+        variant: "destructive",
+        title: "Erro",
+        description: result.message,
+      });
+    }
+  };
+
+  const handleDeleteProduct = async () => {
+    if (!selectedProduct) return;
+    const result = await deleteProductAction(selectedProduct.id);
+    if (result.success) {
+        toast({
+            title: "Sucesso!",
+            description: result.message,
+        });
+    } else {
+        toast({
+            variant: "destructive",
+            title: "Erro",
+            description: result.message,
+        });
+    }
+    setIsDeleteAlertOpen(false);
+    setSelectedProduct(null);
+  };
+
+  const handleCopyLink = (slug: string) => {
+    const url = `${window.location.origin}/${slug}`;
+    navigator.clipboard.writeText(url);
+    toast({
+      description: "Link do checkout copiado para a área de transferência!",
+    });
+  };
+
+  const handleOpenEditModal = (product: Product) => {
+    setSelectedProduct(product);
+    setIsEditModalOpen(true);
+  };
+
+  const handleOpenDeleteAlert = (product: Product) => {
+    setSelectedProduct(product);
+    setIsDeleteAlertOpen(true);
+  };
+
+  return (
+    <>
+      <div className="space-y-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Adicionar Novo Produto</CardTitle>
+            <CardDescription>
+              Preencha os dados abaixo para cadastrar um novo produto digital.
+            </CardDescription>
+          </CardHeader>
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(handleAddProduct)}>
+              <CardContent className="space-y-4">
+                <div className="grid md:grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="name"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Nome do Produto</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Ex: Ebook de Receitas" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="value"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Valor (R$)</FormLabel>
+                        <FormControl>
+                          <Input type="number" step="0.01" placeholder="Ex: 29.90" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                <FormField
+                    control={form.control}
+                    name="description"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Descrição (Subtítulo)</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Ex: Acesso Vitalício ao curso completo" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                 <div className="grid grid-cols-1 gap-4">
+                    <FormField
+                        control={form.control}
+                        name="logoUrl"
+                        render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>URL da Imagem da Logo (Opcional)</FormLabel>
+                            <FormControl>
+                            <Input placeholder="https://..." {...field} />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                        )}
+                    />
+                 </div>
+                 
+                <Separator />
+                
+                <div>
+                  <div className="flex items-center justify-between mb-4">
+                      <h3 className="text-lg font-medium">Imagens do Checkout (Opcional)</h3>
+                      <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => append({ url: "" })}
+                      >
+                          <PlusCircle className="mr-2 h-4 w-4" />
+                          Adicionar Imagem
+                      </Button>
+                  </div>
+                  <div className="space-y-4">
+                      {fields.map((field, index) => (
+                      <div key={field.id} className="flex items-center gap-2">
+                          <FormField
+                          control={form.control}
+                          name={`checkoutImageUrls.${index}.url`}
+                          render={({ field }) => (
+                              <FormItem className="flex-grow">
+                              <FormControl>
+                                  <Input placeholder="https://..." {...field} />
+                              </FormControl>
+                              <FormMessage />
+                              </FormItem>
+                          )}
+                          />
+                          <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => remove(index)}
+                          >
+                          <Trash2 className="h-4 w-4 text-destructive" />
+                          </Button>
+                      </div>
+                      ))}
+                  </div>
+                </div>
+
+              </CardContent>
+              <CardFooter>
+                <Button type="submit" disabled={isLoading}>
+                  {isLoading ? <Loader2 className="animate-spin" /> : <Package className="mr-2" />}
+                  Adicionar Produto
+                </Button>
+              </CardFooter>
+            </form>
+          </Form>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Meus Produtos</CardTitle>
+            <CardDescription>
+              A lista dos seus produtos cadastrados. Use o link para o checkout.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Nome do Produto</TableHead>
+                  <TableHead>Descrição</TableHead>
+                  <TableHead>Valor</TableHead>
+                  <TableHead className="text-right">Ações</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {initialProducts.length > 0 ? (
+                  initialProducts.map((product) => (
+                    <TableRow key={product.id}>
+                      <TableCell className="font-medium">{product.name}</TableCell>
+                      <TableCell>{product.description}</TableCell>
+                      <TableCell>
+                        {product.value.toLocaleString("pt-BR", {
+                          style: "currency",
+                          currency: "BRL",
+                        })}
+                      </TableCell>
+                      <TableCell className="text-right space-x-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleCopyLink(product.slug)}
+                        >
+                          <LinkIcon className="mr-2 h-4 w-4" />
+                          Link
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          onClick={() => handleOpenEditModal(product)}
+                        >
+                          <Edit className="h-4 w-4" />
+                          <span className="sr-only">Editar</span>
+                        </Button>
+                        <Button
+                          variant="destructive"
+                          size="icon"
+                          onClick={() => handleOpenDeleteAlert(product)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                          <span className="sr-only">Excluir</span>
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={4} className="text-center">
+                      Nenhum produto cadastrado ainda.
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+      </div>
+      {isEditModalOpen && selectedProduct && (
+        <EditProductDialog
+          product={selectedProduct}
+          isOpen={isEditModalOpen}
+          onOpenChange={setIsEditModalOpen}
+          onSave={handleUpdateProduct}
+        />
+      )}
+       <AlertDialog open={isDeleteAlertOpen} onOpenChange={setIsDeleteAlertOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Você tem certeza absoluta?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Essa ação não pode ser desfeita. Isso excluirá permanentemente o produto
+              e tornará seu link de checkout inválido.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteProduct}>
+              Sim, excluir produto
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
+  );
+}
